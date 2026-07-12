@@ -562,14 +562,28 @@ export class AdventureEngine {
     });
     this.player.y = clamped.y;
 
-    this.walkVideo.src = loaded.walkUrl;
+    // Configure element before load/play (iOS needs playsinline/muted early)
+    this.player.configureWalkVideoEl?.();
+    this.walkVideo.muted = true;
+    this.walkVideo.setAttribute("playsinline", "");
+    this.walkVideo.setAttribute("webkit-playsinline", "");
+    // Bust cache so re-encoded Baseline walks pick up on mobile
+    const walkSrc = loaded.walkUrl.includes("?")
+      ? loaded.walkUrl
+      : `${loaded.walkUrl}${this.loader.cacheBust || ""}`;
+    this.walkVideo.src = walkSrc;
+    try {
+      this.walkVideo.load();
+    } catch {
+      /* ignore */
+    }
 
     this.applyBrandingChrome(this.room.name);
 
     this.assetsReady = true;
     this.maybeReady();
+    // Best-effort unlock if already past a user gesture; pointerup also unlocks
     this.player.unlockWalkVideo();
-    this.walkVideo.load();
 
     this.audio.stop("ambience");
     if (loaded.roomPack.audio?.ambience) {
@@ -1134,10 +1148,14 @@ export class AdventureEngine {
 
     this.walkVideo.addEventListener("loadeddata", () => {
       this.player.walkReady = true;
-      this.player.unlockWalkVideo();
       this.maybeReady();
     });
     this.walkVideo.addEventListener("canplay", () => {
+      this.player.walkReady = true;
+      this.maybeReady();
+    });
+    // iOS often only paints frames after playing; re-try on canplaythrough
+    this.walkVideo.addEventListener("canplaythrough", () => {
       this.player.walkReady = true;
       this.maybeReady();
     });

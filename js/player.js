@@ -22,6 +22,8 @@ export class Player {
     this.idleCanvas = null;
     this.walkFrameCanvas = null;
     this.walkReady = false;
+    /** True after a successful play() (needed for iOS canvas video frames). */
+    this._walkUnlocked = false;
     this.animations = {};
     this.requestedAnimation = null;
     /**
@@ -54,6 +56,7 @@ export class Player {
   resetWalkCalibration() {
     this.walkCalib = null;
     this.walkFrameCanvas = null;
+    this._walkUnlocked = false;
   }
 
   setHeight(h) {
@@ -139,33 +142,56 @@ export class Player {
     if (fn) fn();
   }
 
-  unlockWalkVideo() {
+  /** iOS Safari–safe attributes (must be set before play; also in HTML). */
+  configureWalkVideoEl() {
     const v = this.walkVideo;
     if (!v) return;
     v.muted = true;
     v.defaultMuted = true;
     v.loop = true;
     v.playsInline = true;
-    v.playbackRate = this.motion.playbackRate;
+    v.setAttribute("muted", "");
+    v.setAttribute("playsinline", "");
+    v.setAttribute("webkit-playsinline", "");
+    v.setAttribute("preload", "auto");
+    // Avoid exotic rates on iOS until we know play works
+    try {
+      v.playbackRate = this.motion.playbackRate;
+    } catch {
+      /* ignore */
+    }
+  }
+
+  unlockWalkVideo() {
+    const v = this.walkVideo;
+    if (!v) return;
+    this.configureWalkVideoEl();
+    // Call from a user gesture so iOS allows decode for canvas drawImage
     const p = v.play();
     if (p && p.then) {
       p.then(() => {
         this.walkReady = true;
-        if (this.walkBlend < 0.15 && !this.moving) v.pause();
+        this._walkUnlocked = true;
+        if (this.walkBlend < 0.15 && !this.moving) {
+          try {
+            v.pause();
+          } catch {
+            /* ignore */
+          }
+        }
       }).catch(() => {
         this.walkReady = v.readyState >= 2;
       });
     } else if (v.readyState >= 2) {
       this.walkReady = true;
+      this._walkUnlocked = true;
     }
   }
 
   ensureWalkPlaying() {
     const v = this.walkVideo;
     if (!v) return;
-    v.muted = true;
-    v.loop = true;
-    v.playbackRate = this.motion.playbackRate;
+    this.configureWalkVideoEl();
     if (v.paused) {
       const p = v.play();
       if (p && p.catch) p.catch(() => {});
@@ -223,10 +249,17 @@ export class Player {
       if (this.walkBlend < 0.35) this.pauseWalkSoft();
     }
 
-    if (this.walkVideo && !this.walkVideo.paused && this.vx > 1) {
+    if (this.walkVideo && !this.walkVideo.paused && this.vx > 1 && this._walkUnlocked) {
       const speedT = Math.min(1, this.vx / m.maxSpeed);
-      this.walkVideo.playbackRate =
-        m.playbackRate * (0.55 + 0.55 * speedT);
+      const rate = m.playbackRate * (0.55 + 0.55 * speedT);
+      // iOS can throw or stall if playbackRate is changed aggressively
+      try {
+        if (Math.abs((this.walkVideo.playbackRate || 1) - rate) > 0.05) {
+          this.walkVideo.playbackRate = rate;
+        }
+      } catch {
+        /* ignore */
+      }
     }
   }
 
@@ -235,10 +268,17 @@ export class Player {
    * First frame: measure content bbox to calibrate scale + foot anchor.
    */
   captureWalkFrame() {
-    if (this.walkBlend <= 0.02 || !this.walkVideo || this.walkVideo.readyState < 2) {
+    // iOS: readyState can be 2 while current frame is still blank until play()
+    if (
+      this.walkBlend <= 0.02 ||
+      !this.walkVideo ||
+      this.walkVideo.readyState < 2
+    ) {
       return this.walkFrameCanvas;
     }
     const vid = this.walkVideo;
+    // Keep decoder warm on iOS when blend wants walk
+    if (vid.paused && this.walking) this.ensureWalkPlaying();
     const sw = vid.videoWidth || 544;
     const sh = vid.videoHeight || 544;
     // Full frame key only — never tight-crop (that cuts limbs and changes aspect)

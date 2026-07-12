@@ -51,7 +51,19 @@
     <span id="status" hidden>Loading…</span>
   </div>
 
-  <video id="walkVideo" muted playsinline loop preload="auto" crossorigin="anonymous" style="display:none"></video>
+  <!-- iOS Safari: not display:none; muted + playsinline in markup for canvas frames -->
+  <video
+    id="walkVideo"
+    muted
+    defaultMuted
+    playsinline
+    webkit-playsinline
+    loop
+    preload="auto"
+    crossorigin="anonymous"
+    disablePictureInPicture
+    style="position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none"
+  ></video>
 
   <script type="module">
     import { AdventureEngine } from "./js/adventure-engine.js";
@@ -61,7 +73,7 @@
       walkVideo: document.getElementById("walkVideo"),
       statusEl: document.getElementById("status"),
       contentRoot: "game_sealed",
-      cacheBust: "?v=47",
+      cacheBust: "?v=66",
     });
 
     window.adventure = engine;

@@ -52,7 +52,22 @@
     <span id="status" hidden>Loading…</span>
   </div>
 
-  <video id="walkVideo" muted playsinline loop preload="auto" crossorigin="anonymous" style="display:none"></video>
+  <!--
+    Walk cycle for canvas drawImage. iOS Safari: must NOT be display:none
+    (decoder may never run); need muted + playsinline attributes in markup.
+  -->
+  <video
+    id="walkVideo"
+    muted
+    defaultMuted
+    playsinline
+    webkit-playsinline
+    loop
+    preload="auto"
+    crossorigin="anonymous"
+    disablePictureInPicture
+    style="position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none"
+  ></video>
 
   <script type="module">
     import { AdventureEngine } from "./js/adventure-engine.js";
@@ -66,7 +81,7 @@
       walkVideo: document.getElementById("walkVideo"),
       statusEl: document.getElementById("status"),
       contentRoot,
-      cacheBust: "?v=64",
+      cacheBust: "?v=66",
     });
 
     window.adventure = engine;
