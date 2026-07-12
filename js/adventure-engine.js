@@ -954,16 +954,31 @@ export class AdventureEngine {
       }
       if (y < this.TOP_BAR) return;
 
-      // Edge travel
-      if (this.tryEdgeClick(x, y)) return;
-
+      // Hotspots before edge travel — otherwise the right-edge exit steals door clicks
+      // and "Use key on door" never runs.
       const hs = this.hotspotAt(x, y);
       if (hs) {
         if (ui.verb === "Walk to" && !inv.selected) {
-          // Open doorways: Walk to = leave through them (not stop at the threshold)
           const linked = this.exitForHotspot(hs);
           if (linked) {
-            this.takeExit(linked, hs.walkX);
+            const open = !linked.when || this.runtime.test(linked.when);
+            if (open) {
+              // Open doorway: Walk to = leave
+              this.takeExit(linked, hs.walkX);
+              return;
+            }
+            // Closed exit: walk up and Use (unlock with key in inventory, etc.)
+            this.actions.replace(() =>
+              this.room.resolveAction(hs, {
+                verb: "Use",
+                selectedItem: null,
+                clearSelected: () => {
+                  inv.selected = null;
+                  ui.updateSentence(undefined, inv);
+                },
+              })
+            );
+            this.walkPlayerTo(hs.walkX, this.room.floorY, () => this.actions.flush());
             return;
           }
           this.actions.cancel();
@@ -983,6 +998,10 @@ export class AdventureEngine {
         }
         return;
       }
+
+      // Empty edge of the scene (not on a door hotspot)
+      if (this.tryEdgeClick(x, y)) return;
+
       if (y > this.FLOOR_TOP && y < this.UI_TOP) {
         this.actions.cancel();
         const c = this.walkMesh.clamp(x, this.room.floorY);
