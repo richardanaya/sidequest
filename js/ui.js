@@ -65,9 +65,16 @@ export class UIShell {
     else this.sentence = this.verb;
   }
 
+  /**
+   * Whether a hotspot/prop is drawn and clickable.
+   * objectFilter = debug isolation (?objects=…).
+   * visibilityCheck = engine hook (taken props, hideWhen, disabled).
+   */
   objectVisible(id) {
-    if (!this.objectFilter) return true;
-    return this.objectFilter.has(id);
+    if (this.objectFilter && !this.objectFilter.has(id)) return false;
+    if (typeof this.visibilityCheck === "function" && !this.visibilityCheck(id))
+      return false;
+    return true;
   }
 
   decoFrame(ctx, x, y, w, h, active) {

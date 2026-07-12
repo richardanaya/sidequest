@@ -23,10 +23,15 @@
           "say": "\"Serve ROYAL ALE and a GOLDEN LOAF upon the high table.\" — still the plan."
         },
         {
+          "when": { "not": { "flag": "readNotice" } },
           "setFlag": "readNotice",
           "give": "notice",
+          "setObject": "notice.taken",
           "say": "A sealed notice: \"His Majesty dines tonight. Serve ROYAL ALE and a GOLDEN LOAF upon the high table.\"",
           "score": { "id": "notice", "points": 5, "reason": "Read the royal notice" }
+        },
+        {
+          "say": "\"Serve ROYAL ALE and a GOLDEN LOAF upon the high table.\" — still the plan."
         }
       ],
       "take": [
@@ -37,6 +42,7 @@
         {
           "setFlag": "readNotice",
           "give": "notice",
+          "setObject": "notice.taken",
           "say": "You take the notice. \"Serve ROYAL ALE and a GOLDEN LOAF upon the high table.\"",
           "score": { "id": "notice", "points": 5, "reason": "Read the royal notice" }
         }
@@ -49,13 +55,16 @@
         {
           "setFlag": "readNotice",
           "give": "notice",
+          "setObject": "notice.taken",
           "say": "\"Serve ROYAL ALE and a GOLDEN LOAF upon the high table.\"",
           "score": { "id": "notice", "points": 5, "reason": "Read the royal notice" }
         }
-      ]
+      ],
+      "hideWhen": { "flag": "readNotice" }
     },
     "mantel": {
       "name": "hearth mantel",
+      "hideWhen": { "flag": "hasKey" },
       "look": [
         {
           "when": { "flag": "hasKey" },
@@ -92,6 +101,7 @@
     },
     "tankard_prop": {
       "name": "tankard",
+      "hideWhen": { "any": [{ "flag": "tookTankard" }, { "hasItem": "tankard" }, { "hasItem": "royal_ale" }] },
       "look": [
         {
           "when": { "flag": "tookTankard" },
@@ -309,6 +319,20 @@
       ],
       "use": [{ "say": "Set the feast on the serving bar when you have ale and loaf." }],
       "take": [{ "say": "The bar stays put." }]
+    },
+    "placed_ale": {
+      "name": "tankard of royal ale",
+      "showWhen": { "flag": "servedAle" },
+      "look": [{ "say": "Frothy royal ale, set for His Majesty." }],
+      "take": [{ "say": "Leave it for the King." }],
+      "use": [{ "say": "It's already served." }]
+    },
+    "placed_loaf": {
+      "name": "golden loaf",
+      "showWhen": { "flag": "servedLoaf" },
+      "look": [{ "say": "A golden loaf, still warm, waiting on the bar." }],
+      "take": [{ "say": "The King should have the first slice." }],
+      "use": [{ "say": "It's already served." }]
     },
     "cellar_door": {
       "name": "cellar door",

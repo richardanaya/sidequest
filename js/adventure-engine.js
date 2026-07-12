@@ -132,6 +132,8 @@ export class AdventureEngine {
       TOP_BAR: this.TOP_BAR,
       itemsCatalog: this.itemsCatalog,
     });
+    // Hide taken / script-hidden props (content setObject "*.taken" or hideWhen)
+    this.ui.visibilityCheck = (id) => this.isHotspotVisible(id);
 
     this._applyDebugParams();
     this.hoverHotspot = null;
@@ -301,6 +303,29 @@ export class AdventureEngine {
     if (!this.urlParams.has(key)) return false;
     const v = this.urlParams.get(key);
     return v === null || v === "" || v === "1" || v === "true" || v === "yes";
+  }
+
+  /**
+   * Prop/hotspot visibility for draw + click.
+   * Content can setObject "slotId.taken" or script objects[id].hideWhen.
+   */
+  isHotspotVisible(id) {
+    if (!id) return true;
+    if (this.disabledHotspots?.has(id)) return false;
+    const roomId = this.roomId;
+    if (roomId) {
+      const obj = this.state.get(`rooms.${roomId}.objects.${id}`);
+      if (obj && (obj.taken === true || obj.hidden === true || obj.visible === false))
+        return false;
+    }
+    const spec = this.room?.script?.objects?.[id];
+    // showWhen: only draw after a flag (e.g. feast items placed on the bar)
+    if (spec?.showWhen && !this.runtime?.test(spec.showWhen)) return false;
+    if (spec?.hideWhen && this.runtime?.test(spec.hideWhen)) return false;
+    // Interaction flags share the same object bag (taken etc.)
+    const flags = this.room?.interactions?.[id]?.flags;
+    if (flags?.taken || flags?.hidden || flags?.visible === false) return false;
+    return true;
   }
 
   _applyDebugParams() {
@@ -774,11 +799,19 @@ export class AdventureEngine {
     }
   }
 
+  /**
+   * Map pointer events from CSS-scaled display size → internal 960×540 canvas space.
+   * Required when the canvas is stretched to fill the window.
+   */
   canvasPos(e) {
     const rect = this.canvas.getBoundingClientRect();
+    const rw = rect.width || 1;
+    const rh = rect.height || 1;
+    const x = ((e.clientX - rect.left) * this.canvas.width) / rw;
+    const y = ((e.clientY - rect.top) * this.canvas.height) / rh;
     return {
-      x: (e.clientX - rect.left) * (this.canvas.width / rect.width),
-      y: (e.clientY - rect.top) * (this.canvas.height / rect.height),
+      x: Math.max(0, Math.min(this.canvas.width, x)),
+      y: Math.max(0, Math.min(this.canvas.height, y)),
     };
   }
 

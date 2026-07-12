@@ -27,6 +27,7 @@
     },
     "flour_prop": {
       "name": "sack of flour",
+      "hideWhen": { "any": [{ "flag": "tookFlour" }, { "hasItem": "flour" }] },
       "look": [
         {
           "when": { "flag": "tookFlour" },

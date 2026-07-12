@@ -129,6 +129,36 @@
       "hh": 95,
       "prop": null
     },
+    "placed_ale": {
+      "id": "placed_ale",
+      "kind": "floor",
+      "noSprite": false,
+      "sceneDrawX": 600,
+      "sceneDrawY": 210,
+      "sceneDrawW": 28,
+      "sceneDrawH": 30,
+      "walkX": 620,
+      "hx": 590,
+      "hy": 200,
+      "hw": 50,
+      "hh": 48,
+      "prop": "props/placed_ale.png"
+    },
+    "placed_loaf": {
+      "id": "placed_loaf",
+      "kind": "floor",
+      "noSprite": false,
+      "sceneDrawX": 670,
+      "sceneDrawY": 218,
+      "sceneDrawW": 36,
+      "sceneDrawH": 28,
+      "walkX": 680,
+      "hx": 660,
+      "hy": 210,
+      "hw": 55,
+      "hh": 45,
+      "prop": "props/placed_loaf.png"
+    },
     "cellar_door": {
       "id": "cellar_door",
       "kind": "wall",
@@ -167,6 +197,8 @@
     "oven": { "name": "hearth oven", "noSprite": true },
     "kings_table": { "name": "serving bar", "noSprite": true },
     "bar": { "name": "bar", "noSprite": true },
+    "placed_ale": { "name": "tankard of royal ale" },
+    "placed_loaf": { "name": "golden loaf" },
     "cellar_door": { "name": "cellar door", "noSprite": true },
     "courtyard_door": { "name": "courtyard door", "noSprite": true }
   }

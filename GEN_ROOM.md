@@ -278,6 +278,43 @@ Typical `manH_scene`: **140–148** scene px. Match door height: player should f
 - Iterate with live screenshots: “tad higher / lower” is normal; trust eyes over first-guess Y.
 - Soft contact shadow under feet (engine ellipse), not baked into the green plate.
 
+### Takeable props must hide when taken
+
+Engine draws props only when visible. On take/use that gives an item, content should:
+
+```json
+"setObject": "tankard_prop.taken"
+```
+
+and/or:
+
+```json
+"hideWhen": { "flag": "tookTankard" }
+```
+
+`setObject: "<slotId>.taken"` (or `.hidden`) removes the sprite **and** click target. Without this, the mug/key stays in the room after it’s in inventory.
+
+### Placed / revealed props (show after a flag)
+
+When the player **puts** an item somewhere (ale on the bar, loaf on the table), use a separate slot that is **hidden until** a flag:
+
+```json
+"placed_ale": {
+  "showWhen": { "flag": "servedAle" },
+  "look": [{ "say": "Frothy royal ale, set for His Majesty." }]
+}
+```
+
+```json
+// room.json slot with prop sprite
+"placed_ale": {
+  "prop": "props/placed_ale.png",
+  "sceneDrawX": 600, "sceneDrawY": 210, "sceneDrawW": 28, "sceneDrawH": 30
+}
+```
+
+On serve: `"setFlag": "servedAle", "remove": "royal_ale"` — inventory clears and the bar sprite appears.
+
 ### Wall props
 
 - Eye-level for notices (not under the dialogue banner, not in the rafters).
