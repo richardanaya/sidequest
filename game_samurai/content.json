@@ -3,6 +3,10 @@
   "title": "Path of the Blade",
   "subtitle": "A Short Samurai Adventure",
   "tagline": "A blossom. A shrine. A blade. The gate waits.",
+  "win": {
+    "title": "The Path Begins",
+    "message": "Mist, road, and sky. The path of the blade is yours."
+  },
   "defaults": {
     "room": "bamboo_courtyard",
     "character": "ronin",

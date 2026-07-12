@@ -3,6 +3,10 @@
   "title": "The Crown & Cup",
   "subtitle": "A Tavern Adventure",
   "tagline": "The King dines tonight. Ale, bread, and a clear head.",
+  "win": {
+    "title": "The Feast Is Set",
+    "message": "A horn sounds outside. The King arrives to ale and fresh bread."
+  },
   "defaults": {
     "room": "common_room",
     "character": "tavernkeep",

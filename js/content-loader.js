@@ -76,6 +76,7 @@ export class ContentLoader {
   /**
    * Key green-screen stills for inventory icons (same chroma path as walk frames).
    * Pre-keyed PNGs with alpha pass through mostly unchanged.
+   * Always returns a private canvas — chroma.crop is shared and must not be retained.
    */
   keyIconImage(img) {
     if (!img) return null;
@@ -83,7 +84,16 @@ export class ContentLoader {
     const h = img.naturalHeight || img.height;
     if (!w || !h) return img;
     const keyed = this.chroma.keyAndCrop(img, w, h);
-    return keyed || img;
+    const src = keyed || img;
+    const sw = src.width || src.naturalWidth || w;
+    const sh = src.height || src.naturalHeight || h;
+    if (!sw || !sh) return img;
+    // Clone off the shared chroma work/crop canvases so parallel loads don't clobber each other
+    const out = document.createElement("canvas");
+    out.width = sw;
+    out.height = sh;
+    out.getContext("2d").drawImage(src, 0, 0);
+    return out;
   }
 
   /**

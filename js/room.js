@@ -28,6 +28,8 @@ export class Room {
     };
     this.gameWon = false;
     this.winFlash = 0;
+    this.winTitle = null;
+    this.winMessage = null;
   }
 
   load({
@@ -316,6 +318,9 @@ export class Room {
     this.story.escaped = true;
     this.gameWon = true;
     this.winFlash = 2.5;
+    // Legacy no-script hall only — prefer script.json "win" + content.json "win"
+    this.winTitle = "Airlock Open";
+    this.winMessage = "You leave the corridor behind.";
     this.inventory.remove("key");
     this.say("The key turns. The airlock opens.");
   }

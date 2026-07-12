@@ -226,7 +226,17 @@ export class AdventureEngine {
         this.room.winFlash = 2.5;
         this.state.won = true;
         if (this.roomId) this.state.room(this.roomId).won = true;
-        if (message) this.dialogue.say(message);
+        // Content-driven win banner (registry.win / defaults.win); never hard-code a game
+        const reg = this.loader?.registry || {};
+        const winCfg = reg.win || reg.defaults?.win || {};
+        const msg =
+          typeof message === "string" && message
+            ? message
+            : winCfg.message || "";
+        this.room.winTitle =
+          winCfg.title || reg.title || reg.defaults?.title || "Complete";
+        this.room.winMessage = msg;
+        if (msg) this.dialogue.say(msg);
         this.autosave();
       },
       die: (message) => this.die(message),

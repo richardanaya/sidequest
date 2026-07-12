@@ -605,16 +605,23 @@ export class UIShell {
 
   drawWin(ctx, room) {
     if (!room.gameWon) return;
+    // Title/message come from content (room.winTitle / winMessage) — never hard-code a game
+    const title = room.winTitle || "COMPLETE";
+    const message = room.winMessage || "";
     ctx.fillStyle = `rgba(8,20,28,${Math.min(0.5, 0.2 + room.winFlash * 0.12)})`;
     ctx.fillRect(0, this.TOP_BAR, this.W, this.UI_TOP - this.TOP_BAR);
     ctx.fillStyle = C.goldLite;
     ctx.font = "22px Cinzel, Georgia, serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("AIRLOCK OPEN", this.W / 2, this.UI_TOP / 2 - 8);
-    ctx.fillStyle = C.creamDim;
-    ctx.font = "13px 'Libre Baskerville', Georgia, serif";
-    ctx.fillText("You leave the corridor behind.", this.W / 2, this.UI_TOP / 2 + 24);
+    ctx.fillText(String(title).toUpperCase().slice(0, 48), this.W / 2, this.UI_TOP / 2 - 8);
+    if (message) {
+      ctx.fillStyle = C.creamDim;
+      ctx.font = "13px 'Libre Baskerville', Georgia, serif";
+      const short =
+        message.length > 90 ? `${message.slice(0, 87).trim()}…` : message;
+      ctx.fillText(short, this.W / 2, this.UI_TOP / 2 + 24);
+    }
   }
 
   /** Hit-test UI (verbs, inventory, expanded panel). */

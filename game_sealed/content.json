@@ -3,6 +3,10 @@
   "title": "Sealed",
   "subtitle": "A Point-and-Click Adventure",
   "tagline": "The airlock is sealed. Someone left this room in a hurry.",
+  "win": {
+    "title": "Airlock Open",
+    "message": "You leave the corridor behind."
+  },
   "defaults": {
     "room": "maintenance_hall",
     "character": null,
