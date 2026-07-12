@@ -406,13 +406,8 @@ export class UIShell {
     }
   }
 
-  drawHover(ctx, hs) {
-    if (!hs || hs.noSprite) return; // doorways: no floating outline (backdrop owns the art)
-    ctx.strokeStyle = "rgba(201,168,76,0.75)";
-    ctx.lineWidth = 2;
-    ctx.setLineDash([5, 4]);
-    ctx.strokeRect(hs.hx - 2, hs.hy - 2, hs.hw + 4, hs.hh + 4);
-    ctx.setLineDash([]);
+  drawHover(_ctx, _hs) {
+    // No dashed hover boxes — sentence line alone signals the target
   }
 
   drawTop(ctx, { dialogueText, dialogue, objective }) {
