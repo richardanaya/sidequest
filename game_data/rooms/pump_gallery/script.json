@@ -1,0 +1,246 @@
+{
+  "version": 1,
+  "entry": {
+    "text": "The pump gallery still hums, barely. Brass pipes sweat. Somewhere ahead, a dock."
+  },
+  "flags": {
+    "toolboxOpen": false,
+    "haveWrench": false,
+    "fusePaid": false,
+    "valveOpen": false,
+    "powerOn": false
+  },
+  "maximumScore": 40,
+  "objects": {
+    "hatch_east": {
+      "name": "service hatch",
+      "look": [
+        {
+          "when": { "flag": "powerOn" },
+          "say": "The hatch is live. Beyond: the bathysphere dock."
+        },
+        { "say": "A service hatch east. Dead without sector power." }
+      ],
+      "talk": [{ "say": "No answer from the dark." }],
+      "take": [{ "say": "It's part of the bulkhead." }],
+      "use": [
+        {
+          "when": { "flag": "powerOn" },
+          "say": "You step through toward the dock.",
+          "transition": { "room": "bathysphere_dock", "spawn": "from_west" }
+        },
+        { "say": "Nothing. The interlock wants power." }
+      ]
+    },
+    "valve": {
+      "name": "main valve",
+      "look": [
+        {
+          "when": { "flag": "valveOpen" },
+          "say": "The wheel is fully open. Pressure equalizes with a long sigh in the pipes."
+        },
+        { "say": "A heavy brass wheel on the main line. Stuck. Needs a tool with leverage." }
+      ],
+      "talk": [{ "say": "…" }],
+      "take": [{ "say": "Bolted into the run." }],
+      "use": [
+        {
+          "when": { "flag": "valveOpen" },
+          "say": "Already open."
+        },
+        {
+          "when": { "not": { "hasItem": "wrench" } },
+          "say": "It won't budge by hand."
+        },
+        {
+          "setFlag": "valveOpen",
+          "say": "The wrench bites. The wheel turns. Water thumps through the gallery.",
+          "score": { "id": "valve", "points": 10, "reason": "Opened the main valve" }
+        }
+      ],
+      "useWith": {
+        "wrench": [
+          {
+            "when": { "flag": "valveOpen" },
+            "say": "Already open."
+          },
+          {
+            "setFlag": "valveOpen",
+            "say": "The wrench bites. The wheel turns. Water thumps through the gallery.",
+            "score": { "id": "valve", "points": 10, "reason": "Opened the main valve" }
+          }
+        ],
+        "fuse": [{ "say": "The fuse belongs in the cabinet, not the valve." }],
+        "coin": [{ "say": "A coin won't turn this." }]
+      }
+    },
+    "fuse_box": {
+      "name": "fuse cabinet",
+      "look": [
+        {
+          "when": { "flag": "powerOn" },
+          "say": "The cabinet hums. Lights along the gallery hold steady."
+        },
+        {
+          "when": { "flag": "valveOpen" },
+          "say": "One empty fuse slot waits. The line is ready — if you have a spare."
+        },
+        { "say": "Brass fuse cabinet. One slot is empty. A warning plate is too corroded to read." }
+      ],
+      "talk": [{ "say": "…" }],
+      "take": [{ "say": "Mounted into the wall." }],
+      "use": [
+        {
+          "when": { "flag": "powerOn" },
+          "say": "Power is already restored."
+        },
+        {
+          "when": { "not": { "flag": "valveOpen" } },
+          "say": "Sparks spit from the empty slot. Something about the line pressure is wrong — the main valve is still shut."
+        },
+        {
+          "when": { "not": { "hasItem": "fuse" } },
+          "say": "The empty slot stares back. You need a spare fuse."
+        },
+        {
+          "setFlag": "powerOn",
+          "remove": "fuse",
+          "say": "The fuse seats with a clean click. Sconces warm. The east hatch unlocks and swings open.",
+          "score": { "id": "power", "points": 15, "reason": "Restored sector power" }
+        }
+      ],
+      "useWith": {
+        "fuse": [
+          {
+            "when": { "flag": "powerOn" },
+            "say": "Already powered."
+          },
+          {
+            "when": { "not": { "flag": "valveOpen" } },
+            "say": "Sparks spit. Open the main valve first — the line is wrong."
+          },
+          {
+            "setFlag": "powerOn",
+            "remove": "fuse",
+            "say": "The fuse seats with a clean click. Sconces warm. The east hatch unlocks and swings open.",
+            "score": { "id": "power", "points": 15, "reason": "Restored sector power" }
+          }
+        ],
+        "wrench": [{ "say": "Not a job for the wrench." }],
+        "coin": [{ "say": "This cabinet takes fuses, not coins. Try the spare case." }]
+      }
+    },
+    "gauge": {
+      "name": "pressure gauges",
+      "look": [
+        {
+          "when": { "flag": "powerOn" },
+          "say": "Needles sit in a calm green arc. The gallery is stable."
+        },
+        {
+          "when": { "flag": "valveOpen" },
+          "say": "Pressure climbed when the valve opened. Still short of a full live circuit."
+        },
+        { "say": "Needles low. The main line is bottled up." }
+      ],
+      "talk": [{ "say": "…" }],
+      "take": [{ "say": "Fixed to the wall." }],
+      "use": [{ "say": "They only report. They don't obey." }]
+    },
+    "spare_case": {
+      "name": "spare fuse case",
+      "look": [
+        {
+          "when": { "flag": "fusePaid" },
+          "say": "Empty glass. The fuse is gone. The coin slot is satisfied."
+        },
+        { "say": "A glass emergency case. One spare fuse waits inside. A brass coin slot sits under the frame — authorized spares only." }
+      ],
+      "talk": [{ "say": "…" }],
+      "take": [
+        {
+          "when": { "flag": "fusePaid" },
+          "say": "Nothing left in the case."
+        },
+        { "say": "The glass won't open without paying the slot." }
+      ],
+      "use": [
+        {
+          "when": { "flag": "fusePaid" },
+          "say": "Empty."
+        },
+        {
+          "when": { "not": { "hasItem": "coin" } },
+          "say": "The slot wants a brass coin."
+        },
+        {
+          "setFlag": "fusePaid",
+          "remove": "coin",
+          "give": "fuse",
+          "say": "The coin drops. A latch clicks. You take the spare fuse.",
+          "score": { "id": "fuse_paid", "points": 10, "reason": "Claimed a spare fuse" }
+        }
+      ],
+      "useWith": {
+        "coin": [
+          {
+            "when": { "flag": "fusePaid" },
+            "say": "Already empty."
+          },
+          {
+            "setFlag": "fusePaid",
+            "remove": "coin",
+            "give": "fuse",
+            "say": "The coin drops. A latch clicks. You take the spare fuse.",
+            "score": { "id": "fuse_paid", "points": 10, "reason": "Claimed a spare fuse" }
+          }
+        ],
+        "wrench": [{ "say": "Smashing it would trip every alarm left in the sector." }],
+        "key": [{ "say": "Wrong lock." }]
+      }
+    },
+    "toolbox": {
+      "name": "toolbox",
+      "look": [
+        {
+          "when": { "flag": "haveWrench" },
+          "say": "Empty but for grease stains. The wrench is yours."
+        },
+        { "say": "A worn brass-bound toolbox. Someone left it open a crack." }
+      ],
+      "talk": [{ "say": "…" }],
+      "take": [
+        {
+          "when": { "flag": "haveWrench" },
+          "say": "Nothing else worth taking."
+        },
+        {
+          "setFlags": { "haveWrench": true, "toolboxOpen": true },
+          "give": "wrench",
+          "say": "Inside: a heavy pipe wrench.",
+          "score": { "id": "wrench", "points": 5, "reason": "Found a wrench" }
+        }
+      ],
+      "use": [
+        {
+          "when": { "flag": "haveWrench" },
+          "say": "Empty."
+        },
+        {
+          "setFlags": { "haveWrench": true, "toolboxOpen": true },
+          "give": "wrench",
+          "say": "Inside: a heavy pipe wrench.",
+          "score": { "id": "wrench", "points": 5, "reason": "Found a wrench" }
+        }
+      ]
+    }
+  },
+  "objectives": [
+    { "when": { "flag": "powerOn" }, "text": "Goal: enter the bathysphere dock" },
+    { "when": { "all": [{ "flag": "valveOpen" }, { "hasItem": "fuse" }] }, "text": "Goal: seat the fuse" },
+    { "when": { "flag": "valveOpen" }, "text": "Goal: get a fuse into the cabinet" },
+    { "when": { "hasItem": "wrench" }, "text": "Goal: free the main valve" },
+    { "when": { "hasItem": "fuse" }, "text": "Goal: open the valve, then power the cabinet" },
+    { "text": "Goal: restore power to the sector" }
+  ]
+}

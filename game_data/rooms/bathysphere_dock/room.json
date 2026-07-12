@@ -1,0 +1,112 @@
+{
+  "id": "bathysphere_dock",
+  "name": "Bathysphere Dock",
+  "version": 1,
+  "description": "Embarkation lobby. Brass control pedestal, ticket scanner, round bathysphere hatch. The way out.",
+  "character": "protagonist",
+  "backdrop": "backdrop.jpg",
+  "script": "script.json",
+  "walkBounds": { "min": 70, "max": 890 },
+  "imageSize": [1280, 720],
+  "sceneSize": [960, 428],
+  "floorY_image": 628,
+  "floorY_scene": 373.3,
+  "manH_scene": 148,
+  "scaleNote": "Props sized as fraction of manH_scene",
+  "spawn": { "xFactor": 0.18, "facing": 1 },
+  "spawns": {
+    "from_west": { "xFactor": 0.18, "facing": 1 },
+    "from_east": { "xFactor": 0.82, "facing": -1 }
+  },
+  "exits": {
+    "west": {
+      "room": "pump_gallery",
+      "spawn": "from_east",
+      "walkX": 80
+    }
+  },
+  "slots": {
+    "pedestal": {
+      "id": "pedestal",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 22,
+      "sceneDrawY": 252,
+      "sceneDrawW": 82,
+      "sceneDrawH": 122,
+      "walkX": 115,
+      "hx": 26,
+      "hy": 255,
+      "hw": 74,
+      "hh": 115,
+      "prop": null
+    },
+    "scanner": {
+      "id": "scanner",
+      "kind": "wall",
+      "noSprite": false,
+      "sceneDrawX": 92,
+      "sceneDrawY": 210,
+      "sceneDrawW": 32,
+      "sceneDrawH": 42,
+      "walkX": 120,
+      "hx": 94,
+      "hy": 214,
+      "hw": 28,
+      "hh": 36,
+      "prop": "props/scanner.png"
+    },
+    "bathysphere": {
+      "id": "bathysphere",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 455,
+      "sceneDrawY": 88,
+      "sceneDrawW": 250,
+      "sceneDrawH": 255,
+      "walkX": 560,
+      "hx": 470,
+      "hy": 100,
+      "hw": 220,
+      "hh": 230,
+      "prop": null
+    },
+    "life_ring": {
+      "id": "life_ring",
+      "kind": "wall",
+      "noSprite": false,
+      "sceneDrawX": 788,
+      "sceneDrawY": 188,
+      "sceneDrawW": 40,
+      "sceneDrawH": 40,
+      "walkX": 800,
+      "hx": 792,
+      "hy": 192,
+      "hw": 32,
+      "hh": 32,
+      "prop": "props/life_ring.png"
+    },
+    "door_east": {
+      "id": "door_east",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 907.5,
+      "sceneDrawY": 148.6,
+      "sceneDrawW": 48.8,
+      "sceneDrawH": 231.8,
+      "walkX": 870,
+      "hx": 907.5,
+      "hy": 148.6,
+      "hw": 48.8,
+      "hh": 231.8,
+      "prop": null
+    }
+  },
+  "hotspotMeta": {
+    "pedestal": { "name": "control pedestal", "noSprite": true },
+    "scanner": { "name": "clearance scanner" },
+    "bathysphere": { "name": "bathysphere hatch", "noSprite": true },
+    "life_ring": { "name": "life ring" },
+    "door_east": { "name": "sealed bulkhead", "noSprite": true }
+  }
+}

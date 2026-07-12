@@ -1,0 +1,154 @@
+{
+  "version": 1,
+  "entry": {
+    "text": "The dock is quiet. A bathysphere waits behind brass dogs. Power holds — for now."
+  },
+  "flags": {
+    "ticketTaken": false,
+    "clearanceGranted": false
+  },
+  "maximumScore": 30,
+  "objects": {
+    "pedestal": {
+      "name": "control pedestal",
+      "look": [
+        {
+          "when": { "flag": "ticketTaken" },
+          "say": "The tray is empty. The scanner still waits for clearance."
+        },
+        {
+          "when": { "not": { "flag": "powerOn" } },
+          "say": "Dark glass. Without sector power the tray stays locked."
+        },
+        { "say": "A brass control pedestal. Under a glass tray: a bathysphere stub. The reader beside it waits." }
+      ],
+      "talk": [{ "say": "…" }],
+      "take": [
+        {
+          "when": { "flag": "ticketTaken" },
+          "say": "Nothing left on the tray."
+        },
+        {
+          "when": { "not": { "flag": "powerOn" } },
+          "say": "The tray won't release. The gallery still needs power."
+        },
+        {
+          "setFlag": "ticketTaken",
+          "give": "ticket",
+          "say": "You lift the bathysphere stub. Still magnetic. Still good.",
+          "score": { "id": "ticket", "points": 10, "reason": "Took the bathysphere stub" }
+        }
+      ],
+      "use": [
+        {
+          "when": { "flag": "ticketTaken" },
+          "say": "Empty tray."
+        },
+        {
+          "when": { "not": { "flag": "powerOn" } },
+          "say": "Dead without power from the pumps."
+        },
+        {
+          "setFlag": "ticketTaken",
+          "give": "ticket",
+          "say": "You lift the bathysphere stub. Still magnetic. Still good.",
+          "score": { "id": "ticket", "points": 10, "reason": "Took the bathysphere stub" }
+        }
+      ]
+    },
+    "scanner": {
+      "name": "clearance scanner",
+      "look": [
+        {
+          "when": { "flag": "clearanceGranted" },
+          "say": "The indicator glows steady. Clearance granted."
+        },
+        { "say": "A brass ticket reader. Slot the size of a bathysphere stub." }
+      ],
+      "talk": [{ "say": "…" }],
+      "take": [{ "say": "Bolted to the wall." }],
+      "use": [
+        {
+          "when": { "flag": "clearanceGranted" },
+          "say": "Already cleared."
+        },
+        {
+          "when": { "not": { "hasItem": "ticket" } },
+          "say": "It wants a stub."
+        },
+        {
+          "setFlag": "clearanceGranted",
+          "remove": "ticket",
+          "say": "The stub seats. A soft chime. The bathysphere dogs unlock.",
+          "score": { "id": "clearance", "points": 10, "reason": "Granted clearance" }
+        }
+      ],
+      "useWith": {
+        "ticket": [
+          {
+            "when": { "flag": "clearanceGranted" },
+            "say": "Already cleared."
+          },
+          {
+            "setFlag": "clearanceGranted",
+            "remove": "ticket",
+            "say": "The stub seats. A soft chime. The bathysphere dogs unlock.",
+            "score": { "id": "clearance", "points": 10, "reason": "Granted clearance" }
+          }
+        ],
+        "coin": [{ "say": "Not a coin slot." }],
+        "key": [{ "say": "Wrong kind of key." }],
+        "fuse": [{ "say": "That belongs in the pump gallery." }],
+        "wrench": [{ "say": "You'll only dent the brass." }]
+      }
+    },
+    "bathysphere": {
+      "name": "bathysphere hatch",
+      "look": [
+        {
+          "when": { "flag": "clearanceGranted" },
+          "say": "The dogs are free. Dark water beyond the glass. One ride up."
+        },
+        { "say": "A great brass hatch. Dogs locked. The sphere beyond is cold and ready." }
+      ],
+      "talk": [{ "say": "The sphere keeps its silence." }],
+      "take": [{ "say": "You're not carrying that." }],
+      "use": [
+        {
+          "when": { "flag": "clearanceGranted" },
+          "score": { "id": "escape", "points": 25, "reason": "Escaped Sector 7B" },
+          "win": "The hatch dogs open. The sphere takes you. Above the dark, a line of light."
+        },
+        { "say": "Locked. The scanner still wants clearance." }
+      ],
+      "useWith": {
+        "ticket": [
+          {
+            "say": "The stub goes in the scanner, not the hatch."
+          }
+        ],
+        "key": [{ "say": "Too small for these dogs." }],
+        "wrench": [{ "say": "Not with a wrench. Clearance first." }]
+      }
+    },
+    "life_ring": {
+      "name": "life ring",
+      "look": [{ "say": "A brass-and-red life ring. For someone who never made it this far." }],
+      "talk": [{ "say": "…" }],
+      "take": [{ "say": "Bolted for a reason. You leave it." }],
+      "use": [{ "say": "Not yet. Prefer the sphere." }]
+    },
+    "door_east": {
+      "name": "sealed bulkhead",
+      "look": [{ "say": "A sealed bulkhead. This sector ends at the sphere." }],
+      "talk": [{ "say": "No one answers." }],
+      "take": [{ "say": "Fixed." }],
+      "use": [{ "say": "Welded from the far side. The only way out is the bathysphere." }]
+    }
+  },
+  "objectives": [
+    { "when": { "flag": "clearanceGranted" }, "text": "Goal: board the bathysphere" },
+    { "when": { "hasItem": "ticket" }, "text": "Goal: scan the stub" },
+    { "text": "Goal: take clearance and leave" }
+  ]
+}

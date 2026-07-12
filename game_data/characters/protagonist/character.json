@@ -1,0 +1,44 @@
+{
+  "id": "protagonist",
+  "name": "Protagonist",
+  "version": 1,
+  "description": "Serious art-deco Rapture citizen. Side view, teal overcoat.",
+  "art": {
+    "idle": "idle.png",
+    "idleSource": "idle.jpg",
+    "walk": "walk.mp4",
+    "facing": "right",
+    "chromaKey": "#00FF00"
+  },
+  "animations": {
+    "idle": { "asset": "idle.png", "type": "image", "loop": true },
+    "walk": { "asset": "walk.mp4", "type": "video", "loop": true },
+    "talk": { "fallback": "idle" },
+    "use": { "fallback": "idle" },
+    "pickup": { "fallback": "use" }
+  },
+  "interaction": { "reach": 70, "footAnchor": [0.5, 1] },
+  "dialogue": { "portrait": null, "voice": null },
+  "scale": {
+    "defaultHeightScene": 148,
+    "notes": "Authoritative height usually comes from room.manH_scene when placed in a room."
+  },
+  "motion": {
+    "maxSpeed": 118,
+    "accel": 520,
+    "decel": 780,
+    "stopEpsilon": 2.5,
+    "playbackRate": 0.72,
+    "blendIn": 11.0,
+    "blendOut": 9.0,
+    "walkSpeedThreshold": 12
+  },
+  "rules": [
+    "Generate idle on pure green #00FF00, full body side view facing right.",
+    "Walk cycle must be derived from the idle plate for identity.",
+    "Never draw full-opacity idle under walk frames.",
+    "Use idle aspect for stable on-screen width; fit walk frames to same height.",
+    "Accel/decel movement; pause walk video soft on stop (no hard seek pop).",
+    "Composite with room props before shipping scale."
+  ]
+}

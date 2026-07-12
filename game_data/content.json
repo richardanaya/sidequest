@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "title": "Sealed",
+  "subtitle": "A Point-and-Click Adventure",
+  "tagline": "The airlock is sealed. Someone left this room in a hurry.",
+  "defaults": {
+    "room": "maintenance_hall",
+    "character": null,
+    "titleBackground": "ui/title.jpg"
+  },
+  "characters": {
+    "protagonist": {
+      "path": "characters/protagonist",
+      "name": "Protagonist"
+    }
+  },
+  "rooms": {
+    "maintenance_hall": {
+      "path": "rooms/maintenance_hall",
+      "name": "Maintenance Hall",
+      "character": "protagonist"
+    },
+    "pump_gallery": {
+      "path": "rooms/pump_gallery",
+      "name": "Pump Gallery",
+      "character": "protagonist"
+    },
+    "bathysphere_dock": {
+      "path": "rooms/bathysphere_dock",
+      "name": "Bathysphere Dock",
+      "character": "protagonist"
+    }
+  }
+}

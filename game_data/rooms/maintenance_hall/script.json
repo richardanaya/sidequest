@@ -1,0 +1,252 @@
+{
+  "version": 1,
+  "entry": {
+    "text": "The airlock is sealed. Someone left this room in a hurry."
+  },
+  "flags": {
+    "knowCode": false,
+    "readNote": false,
+    "hasKey": false,
+    "airlockOpen": false,
+    "escaped": false,
+    "safeOpen": false,
+    "deskLooted": false
+  },
+  "maximumScore": 35,
+  "objects": {
+    "door": {
+      "name": "airlock door",
+      "look": [
+        {
+          "when": { "flag": "airlockOpen" },
+          "say": "The airlock stands open. Beyond: the pump gallery."
+        },
+        { "say": "Maintenance airlock. Sealed from this side. The only way deeper into the sector." }
+      ],
+      "talk": [{ "say": "No answer." }],
+      "take": [{ "say": "Fixed to the bulkhead." }],
+      "use": [
+        {
+          "when": { "flag": "airlockOpen" },
+          "say": "You step through into the pump gallery.",
+          "transition": { "room": "pump_gallery", "spawn": "from_west" }
+        },
+        {
+          "when": { "not": { "hasItem": "key" } },
+          "say": "Sealed. The dogs need a key."
+        },
+        {
+          "setFlags": { "airlockOpen": true, "escaped": true },
+          "remove": "key",
+          "say": "The key turns. The bulkhead dogs unlock and the airlock swings open. Walk through — or Use it again.",
+          "score": { "id": "airlock", "points": 15, "reason": "Opened the airlock" }
+        }
+      ],
+      "useWith": {
+        "key": [
+          {
+            "when": { "flag": "airlockOpen" },
+            "say": "Already open."
+          },
+          {
+            "setFlags": { "airlockOpen": true, "escaped": true },
+            "remove": "key",
+            "say": "The key turns. The airlock sighs open. Beyond: brass pipes and wet floor.",
+            "score": { "id": "airlock", "points": 15, "reason": "Opened the airlock" }
+          }
+        ],
+        "note": [
+          {
+            "say": "The note isn't a key. It only pointed you to the planter."
+          }
+        ]
+      }
+    },
+    "portrait": {
+      "name": "wall portrait",
+      "look": [
+        {
+          "say": "A stern face in a gilt frame. The brass plaque is fouled with grime — numbers underneath."
+        }
+      ],
+      "talk": [{ "say": "Silence." }],
+      "take": [{ "say": "Bolted to the wall." }],
+      "use": [
+        {
+          "setFlag": "knowCode",
+          "say": "You clear the plaque. 1-9-5-9. A combination — likely for the wall safe.",
+          "score": { "id": "code", "points": 5, "reason": "Found the combination" }
+        }
+      ]
+    },
+    "safe": {
+      "name": "wall safe",
+      "look": [
+        {
+          "when": { "flag": "safeOpen" },
+          "say": "The safe is open and empty."
+        },
+        {
+          "when": { "flag": "knowCode" },
+          "say": "Combination lock. You have the numbers: 1-9-5-9."
+        },
+        { "say": "A wall safe. Combination unknown." }
+      ],
+      "talk": [{ "say": "…" }],
+      "take": [{ "say": "Mounted into the wall." }],
+      "use": [
+        {
+          "when": { "flag": "safeOpen" },
+          "say": "Empty."
+        },
+        {
+          "when": { "not": { "flag": "knowCode" } },
+          "say": "The dial won't give without the combination."
+        },
+        {
+          "setFlags": { "safeOpen": true, "readNote": true },
+          "setObject": "safe.open",
+          "give": "note",
+          "say": "1-9-5-9. The lock yields. Inside: a note. KEY IN THE PLANTER.",
+          "score": { "id": "safe", "points": 10, "reason": "Opened the safe" }
+        }
+      ]
+    },
+    "plant": {
+      "name": "wilted planter",
+      "look": [
+        {
+          "when": { "flag": "hasKey" },
+          "say": "Disturbed soil. Nothing else remains."
+        },
+        {
+          "when": { "flag": "readNote" },
+          "say": "The soil is loose. The note said the key is here."
+        },
+        { "say": "Brass urn, dead leaves. The soil looks recently turned." }
+      ],
+      "talk": [{ "say": "…" }],
+      "take": [
+        {
+          "when": { "flag": "hasKey" },
+          "say": "Nothing more in the soil."
+        },
+        {
+          "when": { "not": { "flag": "readNote" } },
+          "say": "You leave the soil alone. No reason to dig yet."
+        },
+        {
+          "setFlag": "hasKey",
+          "give": "key",
+          "say": "Buried in the soil: a brass key.",
+          "score": { "id": "key", "points": 5, "reason": "Found the airlock key" }
+        }
+      ],
+      "use": [
+        {
+          "when": { "flag": "hasKey" },
+          "say": "Nothing more in the soil."
+        },
+        {
+          "when": { "not": { "flag": "readNote" } },
+          "say": "You leave the soil alone. No reason to dig yet."
+        },
+        {
+          "setFlag": "hasKey",
+          "give": "key",
+          "say": "Buried in the soil: a brass key.",
+          "score": { "id": "key", "points": 5, "reason": "Found the airlock key" }
+        }
+      ],
+      "useWith": {
+        "note": [
+          {
+            "setFlag": "readNote",
+            "say": "You compare the note to the planter. KEY IN THE PLANTER."
+          }
+        ]
+      }
+    },
+    "desk": {
+      "name": "desk",
+      "look": [
+        {
+          "when": { "flag": "deskLooted" },
+          "say": "Dust and empty drawers."
+        },
+        { "say": "A writing desk. A brass coin lies on the blotter." }
+      ],
+      "talk": [{ "say": "…" }],
+      "take": [
+        {
+          "when": { "flag": "deskLooted" },
+          "say": "Nothing left on the table."
+        },
+        {
+          "setFlag": "deskLooted",
+          "give": "coin",
+          "say": "You take the brass coin. It might buy something yet."
+        }
+      ],
+      "use": [
+        {
+          "when": { "flag": "deskLooted" },
+          "say": "Nothing left on the table."
+        },
+        {
+          "setFlag": "deskLooted",
+          "give": "coin",
+          "say": "You take the brass coin. It might buy something yet."
+        }
+      ]
+    },
+    "cat": {
+      "name": "stray cat",
+      "look": [
+        {
+          "say": "A thin orange cat. It watches the room without interest."
+        }
+      ],
+      "talk": [
+        {
+          "when": { "flag": "airlockOpen" },
+          "say": "It pads toward the open airlock, then looks back at you."
+        },
+        {
+          "when": { "not": { "flag": "knowCode" } },
+          "say": "It glances toward the portrait, then looks away."
+        },
+        {
+          "when": { "not": { "flag": "readNote" } },
+          "say": "Its attention drifts to the wall safe."
+        },
+        {
+          "when": { "not": { "flag": "hasKey" } },
+          "say": "It sits by the planter as if waiting."
+        },
+        { "say": "It looks toward the airlock." }
+      ],
+      "take": [{ "say": "It slips out of reach." }],
+      "use": [{ "say": "It allows a brief touch, then steps aside." }]
+    }
+  },
+  "objectives": [
+    {
+      "when": { "flag": "airlockOpen" },
+      "text": "Goal: enter the pump gallery"
+    },
+    {
+      "when": { "flag": "hasKey" },
+      "text": "Goal: unlock the airlock"
+    },
+    {
+      "when": { "flag": "readNote" },
+      "text": "Goal: dig in the planter"
+    },
+    {
+      "when": { "flag": "knowCode" },
+      "text": "Goal: open the wall safe"
+    },
+    { "text": "Goal: find a way out" }
+  ]
+}

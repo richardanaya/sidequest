@@ -1,0 +1,140 @@
+{
+  "id": "pump_gallery",
+  "name": "Pump Gallery",
+  "version": 1,
+  "description": "Industrial art-deco pump room. Brass pipes, main valve, fuse cabinet, wet floor. East hatch to the bathysphere dock.",
+  "character": "protagonist",
+  "backdrop": "backdrop_sealed.jpg",
+  "backdrops": [
+    { "when": { "flag": "powerOn" }, "src": "backdrop_open.jpg" },
+    { "src": "backdrop_sealed.jpg" }
+  ],
+  "script": "script.json",
+  "walkBounds": { "min": 70, "max": 890 },
+  "imageSize": [1280, 720],
+  "sceneSize": [960, 428],
+  "floorY_image": 628,
+  "floorY_scene": 373.3,
+  "manH_scene": 148,
+  "scaleNote": "Props sized as fraction of manH_scene",
+  "spawn": { "xFactor": 0.18, "facing": 1 },
+  "spawns": {
+    "from_west": { "xFactor": 0.18, "facing": 1 },
+    "from_east": { "xFactor": 0.82, "facing": -1 }
+  },
+  "exits": {
+    "west": {
+      "room": "maintenance_hall",
+      "spawn": "from_east",
+      "walkX": 80
+    },
+    "east": {
+      "room": "bathysphere_dock",
+      "spawn": "from_west",
+      "walkX": 880,
+      "hotspot": "hatch_east",
+      "when": { "flag": "powerOn" },
+      "blockedSay": "The service hatch is sealed. Restore power first."
+    }
+  },
+  "slots": {
+    "hatch_east": {
+      "id": "hatch_east",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 907.5,
+      "sceneDrawY": 148.6,
+      "sceneDrawW": 48.8,
+      "sceneDrawH": 231.8,
+      "walkX": 870,
+      "hx": 907.5,
+      "hy": 148.6,
+      "hw": 48.8,
+      "hh": 231.8,
+      "prop": null
+    },
+    "valve": {
+      "id": "valve",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 285,
+      "sceneDrawY": 195,
+      "sceneDrawW": 110,
+      "sceneDrawH": 120,
+      "walkX": 330,
+      "hx": 295,
+      "hy": 205,
+      "hw": 95,
+      "hh": 100,
+      "prop": null
+    },
+    "fuse_box": {
+      "id": "fuse_box",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 628,
+      "sceneDrawY": 168,
+      "sceneDrawW": 118,
+      "sceneDrawH": 112,
+      "walkX": 680,
+      "hx": 635,
+      "hy": 175,
+      "hw": 105,
+      "hh": 100,
+      "prop": null
+    },
+    "gauge": {
+      "id": "gauge",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 455,
+      "sceneDrawY": 145,
+      "sceneDrawW": 110,
+      "sceneDrawH": 78,
+      "walkX": 500,
+      "hx": 460,
+      "hy": 148,
+      "hw": 100,
+      "hh": 70,
+      "prop": null
+    },
+    "spare_case": {
+      "id": "spare_case",
+      "kind": "wall",
+      "noSprite": false,
+      "sceneDrawX": 48,
+      "sceneDrawY": 155,
+      "sceneDrawW": 42,
+      "sceneDrawH": 55,
+      "walkX": 95,
+      "hx": 52,
+      "hy": 160,
+      "hw": 36,
+      "hh": 48,
+      "prop": "props/spare_case.png"
+    },
+    "toolbox": {
+      "id": "toolbox",
+      "kind": "floor",
+      "noSprite": false,
+      "sceneDrawX": 200,
+      "sceneDrawY": 328,
+      "sceneDrawW": 62,
+      "sceneDrawH": 44,
+      "walkX": 235,
+      "hx": 205,
+      "hy": 332,
+      "hw": 54,
+      "hh": 38,
+      "prop": "props/toolbox.png"
+    }
+  },
+  "hotspotMeta": {
+    "hatch_east": { "name": "service hatch", "noSprite": true },
+    "valve": { "name": "main valve", "noSprite": true },
+    "fuse_box": { "name": "fuse cabinet", "noSprite": true },
+    "gauge": { "name": "pressure gauges", "noSprite": true },
+    "spare_case": { "name": "spare fuse case" },
+    "toolbox": { "name": "toolbox" }
+  }
+}

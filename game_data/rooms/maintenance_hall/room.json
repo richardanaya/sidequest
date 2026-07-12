@@ -1,0 +1,185 @@
+{
+  "id": "maintenance_hall",
+  "name": "Maintenance Hall",
+  "version": 1,
+  "description": "Sealed Rapture corridor with airlock. Art-deco hall, single fixed camera.",
+  "character": "protagonist",
+  "backdrop": "backdrop_sealed.jpg",
+  "backdrops": [
+    { "when": { "flag": "airlockOpen" }, "src": "backdrop_open.jpg" },
+    { "src": "backdrop_sealed.jpg" }
+  ],
+  "script": "script.json",
+  "walkBounds": { "min": 70, "max": 890 },
+  "segmentation": "seg_mask.jpg",
+  "qa": {
+    "composite": "qa/composite_check.jpg"
+  },
+  "imageSize": [
+    1280,
+    720
+  ],
+  "sceneSize": [
+    960,
+    428
+  ],
+  "floorY_image": 628,
+  "floorY_scene": 373.3,
+  "manH_scene": 148,
+  "scaleNote": "Props sized as fraction of manH_scene",
+  "slots": {
+    "door": {
+      "kind": "wall",
+      "noSprite": true,
+      "drawX": 1210,
+      "drawY": 250,
+      "drawW": 65,
+      "drawH": 390,
+      "sceneDrawX": 907.5,
+      "sceneDrawY": 148.6,
+      "sceneDrawW": 48.8,
+      "sceneDrawH": 231.8,
+      "walkX": 870.0,
+      "hx": 907.5,
+      "hy": 148.6,
+      "hw": 48.8,
+      "hh": 231.8,
+      "prop": null,
+      "id": "door"
+    },
+    "portrait": {
+      "kind": "wall",
+      "noSprite": false,
+      "drawX": 227.4,
+      "drawY": 248.3,
+      "drawW": 81.3,
+      "drawH": 119.5,
+      "sceneDrawX": 170.5,
+      "sceneDrawY": 147.6,
+      "sceneDrawW": 60.9,
+      "sceneDrawH": 71.0,
+      "walkX": 201.0,
+      "hx": 175.4,
+      "hy": 151.1,
+      "hw": 51.2,
+      "hh": 63.9,
+      "prop": "props/portrait.png",
+      "id": "portrait"
+    },
+    "safe": {
+      "kind": "wall",
+      "noSprite": false,
+      "drawX": 1070.0,
+      "drawY": 355.6,
+      "drawW": 58.2,
+      "drawH": 84.7,
+      "sceneDrawX": 802.5,
+      "sceneDrawY": 211.4,
+      "sceneDrawW": 43.7,
+      "sceneDrawH": 50.3,
+      "walkX": 795.0,
+      "hx": 806.0,
+      "hy": 213.9,
+      "hw": 36.7,
+      "hh": 45.3,
+      "prop": "props/safe.png",
+      "id": "safe"
+    },
+    "plant": {
+      "kind": "floor",
+      "noSprite": false,
+      "drawX": 111.1,
+      "drawY": 538.4,
+      "drawW": 77.8,
+      "drawH": 89.6,
+      "sceneDrawX": 83.3,
+      "sceneDrawY": 320.0,
+      "sceneDrawW": 58.3,
+      "sceneDrawH": 53.3,
+      "walkX": 112.5,
+      "hx": 88.0,
+      "hy": 322.7,
+      "hw": 49.0,
+      "hh": 48.0,
+      "prop": "props/plant.png",
+      "id": "plant"
+    },
+    "desk": {
+      "kind": "floor",
+      "noSprite": false,
+      "drawX": 966.1,
+      "drawY": 453.7,
+      "drawW": 147.7,
+      "drawH": 174.3,
+      "sceneDrawX": 724.6,
+      "sceneDrawY": 269.7,
+      "sceneDrawW": 110.8,
+      "sceneDrawH": 103.6,
+      "walkX": 780.0,
+      "hx": 733.5,
+      "hy": 274.9,
+      "hw": 93.1,
+      "hh": 93.2,
+      "prop": "props/desk.png",
+      "id": "desk"
+    },
+    "cat": {
+      "kind": "floor",
+      "noSprite": false,
+      "drawX": 623.3,
+      "drawY": 573.2,
+      "drawW": 33.4,
+      "drawH": 54.8,
+      "sceneDrawX": 467.5,
+      "sceneDrawY": 340.7,
+      "sceneDrawW": 25.1,
+      "sceneDrawH": 32.6,
+      "walkX": 480.0,
+      "hx": 469.5,
+      "hy": 342.4,
+      "hw": 21.1,
+      "hh": 29.3,
+      "prop": "props/cat.png",
+      "id": "cat"
+    }
+  },
+  "spawn": {
+    "xFactor": 0.32,
+    "facing": 1
+  },
+  "spawns": {
+    "from_west": { "xFactor": 0.18, "facing": 1 },
+    "from_east": { "xFactor": 0.82, "facing": -1 }
+  },
+  "exits": {
+    "east": {
+      "room": "pump_gallery",
+      "spawn": "from_west",
+      "walkX": 880,
+      "hotspot": "door",
+      "when": { "flag": "airlockOpen" },
+      "blockedSay": "The airlock is sealed. Find a key — it won't open from this side."
+    }
+  },
+  "hotspotMeta": {
+    "door": {
+      "name": "airlock door",
+      "noSprite": true
+    },
+    "portrait": {
+      "name": "wall portrait"
+    },
+    "plant": {
+      "name": "wilted planter"
+    },
+    "cat": {
+      "name": "stray cat"
+    },
+    "desk": {
+      "name": "desk"
+    },
+    "safe": {
+      "name": "wall safe"
+    }
+  }
+}
