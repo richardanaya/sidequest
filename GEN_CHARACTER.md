@@ -1,8 +1,8 @@
 # GEN_CHARACTER — Building a high-quality adventure character
 
-Practical pipeline and quality bar for the player character in this project: **idle plate, walk cycle, green-screen extraction, scale vs room, movement feel, and visual QA.** Drawn from what worked (and failed) in session: goofy Maniac-Mansion cartoony passes vs serious art-deco Rapture, broken/double walk layers, hard stops, and size mismatches with props.
+Practical pipeline and quality bar for the player character: **idle plate, walk cycle, green-screen extraction, scale vs room, movement feel, and visual QA.** Drawn from what worked (and failed) across games: tone clashes (goofy vs serious rooms), double walk layers, hard stops, squashed/cropped walk frames, and size mismatches with props.
 
-**Pack layout:** each character is a folder pack under `game_data/characters/<characterId>/` with `character.json` + art. See [`CONTENT.md`](./CONTENT.md). This file is *how to author* a good character pack.
+**Pack layout:** each character is a folder pack under `{contentRoot}/characters/<characterId>/` (e.g. `game_tavern/characters/tavernkeep/`) with `character.json` + art. See [`CONTENT.md`](./CONTENT.md). This file is *how to author* a good character pack.
 
 ---
 
@@ -11,24 +11,26 @@ Practical pipeline and quality bar for the player character in this project: **i
 - One **readable side-view** character that belongs in the room’s art direction.
 - **Idle** and **walk** that share identity (same outfit, proportions, rendering).
 - Scale locked to the room via **`manH_scene`** (see `GEN_ROOM.md`).
-- Walk that **starts, loops, and stops** without skating, popping, or double silhouettes.
+- Walk that **starts, loops, and stops** without skating, popping, double silhouettes, or **cropped limbs**.
+- Motion that matches the game’s tone (calm Rapture stride vs casual tavern amble).
 
-Avoid: pure freehand “draw a guy,” mismatched idle/walk styles, stacking idle under walk at full opacity, and hard velocity cuts mid-stride.
+Avoid: freehand “draw a guy,” mismatched idle/walk styles, stacking idle under walk at full opacity, hard velocity cuts mid-stride, and per-frame tight crops that cut off arms/legs.
 
 ---
 
 ## End-to-end pipeline
 
 ```
-1. Art direction lock     → serious vs goofy; match backdrop mood
-2. Idle base image        → side view, full body, pure green #00FF00
-3. Visual read of idle    → proportions, crop, green plate quality
-4. Chroma + tight crop    → character.png (opaque bounds)
-5. Walk from idle plate   → image-to-video (or edited pose → video)
-6. Walk QA                → extract frames; check gait, loop, green
-7. Scale vs room          → manH_scene; composite with props
-8. In-game motion         → accel/decel, playback rate, single-sprite draw
-9. Live screenshot QA     → idle, mid-walk, stop
+1. Art direction lock     → match backdrop style (VGA pixel, painted, art-deco…)
+2. Age / silhouette pass  → iterate until face/body read right (young vs mature)
+3. Idle base image        → side view, full body, pure green #00FF00
+4. Visual read of idle    → proportions, crop, green plate quality
+5. Chroma + tight crop    → idle.png (opaque bounds) for idle draw only
+6. Walk from idle plate   → image-to-video (subtle, in-place, loopable)
+7. Walk QA                → extract frames; check gait, loop, green, full body
+8. Scale vs room          → manH_scene; composite with props / doors
+9. In-game motion         → accel/decel, playback rate, single-sprite draw
+10. Live screenshot QA    → idle, mid-walk, stop in a real room
 ```
 
 Ship when **composite with room** and **live walk/stop** both look intentional.
@@ -37,26 +39,28 @@ Ship when **composite with room** and **live walk/stop** both look intentional.
 
 ## 1. Art direction
 
-### What failed here
+### Match the rooms
 
-- Chunky “1990s Maniac Mansion” exaggeration next to a refined Rapture hall → read as **goofy**, even when funny on its own.
-- Bright cartoon props + cartoony hero → world felt inconsistent.
+| Room style | Character should be |
+|------------|---------------------|
+| VGA / Sierra pixel (e.g. *Crown & Cup*) | Chunk pixels, limited palette, hard edges — not smooth 3D |
+| Painted Sierra | Brushy illustration, same color world |
+| Art-deco / Rapture (*Sealed*) | Semi-realistic, restrained, muted teal/brass |
 
-### What worked
+Photoreal hero in a pixel tavern (or pixel hero in a CGI hall) fails. Lock style with the **first room plate**, then generate the character to match.
 
-- **Adult proportions** (not chibi, not giant head).
-- **Restrained art deco / Bioshock-citizen** look: tailored coat, calm face, muted teal/brass/black.
-- Semi-realistic illustration or high-control pixel-adjacent rendering that matches the **backdrop’s seriousness**.
-- Copy and animation equally restrained (no bouncy slapstick walk).
+### Tone
+
+- **Adult proportions** unless the whole game is comedy-chibi.
+- Comedy lives in **copy and puzzles** more safely than in a goofy body next to serious architecture.
+- Age: specify clearly in prompts (“about 25–28,” “not a child,” “not middle-aged”) and **visually reject** misses. Echoes of classic heroes (e.g. young King Graham) work if the face still reads as your protagonist.
 
 ### Direction checklist
 
-- [ ] Same value range / detail density as `room.jpg`
-- [ ] Side view facing **right** (flip in engine for left)
-- [ ] Full body, feet visible, silhouette readable at ~140–160 px height
-- [ ] Not comedy-first unless the whole game is
-
-**Art deco is fine. Goofy is optional—and costly if the room is somber.**
+- [ ] Same value range / detail density as room backdrops  
+- [ ] Side view facing **right** (engine flips for left)  
+- [ ] Full body, feet visible, silhouette readable at ~140–160 px height  
+- [ ] Age and mood approved before walk generation  
 
 ---
 
@@ -73,40 +77,40 @@ Ship when **composite with room** and **live walk/stop** both look intentional.
 | Style | Match final game look (see §1) |
 | Aspect | Square gen is OK; content will be tall after crop |
 
-Prompt anchors that helped: *adult proportions, restrained, serious, pure green background, no floor, no shadow, full body.*
+Prompt anchors: *side view facing right, full body, pure green background, no floor, no shadow, adult proportions, [style keywords], [age].*
 
 ### After generate — read the image
 
-- Coat/skin not eaten by green (teal coats need careful key later).
+- Coat/skin not eaten by green (teal needs careful key later).
 - Feet clear of plate edge.
-- Silhouette: too thin a profile is OK for side-view art, but crop shouldn’t delete volume.
+- Face age matches intent (regenerate; don’t “fix it in post”).
+- Silhouette has enough body volume for side-view readability.
 
 ---
 
-## 3. Green screen → `character.png`
+## 3. Green screen → `idle.png`
 
 ### Keying rules
 
 - Key **pure screen green**: high G, low R/B, strong green dominance.
 - **Protect** teal clothing and cool shadows: do **not** key “any greenish pixel.”
 - Despill residual green on edges.
-- Soft edge optional; hard key + small pad is fine for adventure scale.
 
 ### Crop
 
 - Crop to opaque alpha bounds (+ 1–2 px pad).
-- Save `game_data/characters/<id>/idle.png`.
-- Record aspect `width/height` for stable on-screen width.
+- Save `{contentRoot}/characters/<id>/idle.png`.
+- Keep `idle.jpg` (or source plate) for walk regeneration and re-key.
 
 ### Verify
 
 ```text
 opaque bounds exist
 center sample is coat/skin, not green
-aspect looks like a person, not a 1px needle (unless art is pure profile)
+aspect looks like a person, not a 1px needle
 ```
 
-If the crop is absurdly thin, re-check key thresholds or regenerate with slightly more body volume—not arbitrary horizontal stretch in-game (distorts the art).
+If the crop is absurdly thin, re-key or re-gen — don’t stretch X in-game.
 
 ---
 
@@ -114,91 +118,121 @@ If the crop is absurdly thin, re-check key thresholds or regenerate with slightl
 
 ### Source
 
-Always start from the **same idle plate** (or a carefully edited variant of it) so identity holds:
+Always start from the **same idle plate** so identity holds:
 
-- `image_to_video(idle)` preferred over a new full-body gen for walk.
+- `image_to_video(idle)` preferred over a new full-body gen.
 
 ### Motion brief (what to ask for)
 
-- Side view, facing right, **in-place** walk (treadmill).
-- **Adult gait**: measured stride, small arm swing, **minimal vertical bob**.
-- Feet plant cleanly; not rubber-hose, not bouncy, not cartoon.
-- Camera **locked**; green background **unchanged**; character **centered**.
+- Side view, facing right, **in-place** walk (treadmill) — **not** traveling across the frame (engine only moves on X).
+- **Subtle / casual** by default for adventure: small steps, soft arm swing, minimal vertical bob.
+- Avoid exaggerated march, rubber-hose bounce, or athletic sprint unless the game wants that.
+- Green background **unchanged**; character **centered**; camera locked.
 - Duration: 6s (or tool minimum); loop-friendly.
+
+### Playback rate
+
+Start conservative so gait matches on-screen speed:
+
+```text
+playbackRate ≈ 0.7–0.85
+maxSpeed     ≈ 85–110 px/s for a calm stroll
+```
+
+Faster video than movement → moonwalk/skate. Prefer slightly slow video over skating feet.
 
 ### What failed
 
-- Over-animated “game sprite” bounce.
-- Cycle too fast for on-screen move speed → foot skating.
-- Idle under walk at α=1 → **double character**.
-- Hard stop + `currentTime = 0` → mid-stride pop to idle.
+| Failure | Symptom | Fix |
+|---------|---------|-----|
+| Over-animated bounce | Cartoon slapstick | Re-gen subtle walk; lower playbackRate |
+| Per-frame **tight content crop** | Limbs cut off; aspect jumps; “squashed” walk | **Never crop walk frames** for draw — see §5 |
+| Idle under walk at α=1 | Double character | Hard cut or true crossfade only |
+| Hard stop + seek 0 | Mid-stride pop | Pause in place; blend out |
+| Walk gen without idle ref | Outfit drift | Always condition on idle plate |
 
 ### Frame QA (offline)
 
-Extract frames (e.g. every Nth frame):
+Extract sample frames (ffmpeg `fps=2` or similar):
 
 - [ ] Same outfit/colors as idle  
 - [ ] Green plate still keyable  
-- [ ] Stride looks adult, not sliding  
+- [ ] Full body visible (no side cut-off in the **video**)  
+- [ ] Gait subtle enough for the game  
 - [ ] Loop doesn’t teleport feet/torso  
-- [ ] Cropped content aspect roughly stable across frames  
 
 ---
 
-## 5. Scale vs the room
+## 5. Drawing walk frames (engine contract)
 
-Character height is the **scale ruler** for the whole room (`GEN_ROOM.md`).
+### Full frame key — no tight crop for display
 
-| Concept | Practice |
-|---------|----------|
-| `manH_scene` | Authoritative height in scene pixels (e.g. 148) |
-| On-screen height | `TARGET_H = manH_scene` from `placements.json` |
-| Width | `round(TARGET_H * (spriteWidth / spriteHeight))` from **idle** aspect for stability |
-| Feet | `drawY = groundY - TARGET_H` with shared `floorY_scene` |
+Walk video frames must be **chroma-keyed at full frame size**. Do **not** tight-crop each frame to content bounds for drawing — that:
 
-### Composite check (required)
+- Cuts limbs when the pose extends past the idle silhouette  
+- Changes aspect every frame (horizontal squash / jitter)  
+- Fights a stable foot anchor  
 
-Render room + props + character on the floor line:
+### First-frame calibration (required)
 
-- Man taller than desk surface; desk top near **waist**.
-- Cat clearly smaller (≈18–24% of man height).
-- Plant not man-height.
-- Character not a speck and not a giant.
+On the first good walk frame after key:
 
-Do not ship character size that only looks good in isolation on green.
+1. Measure **content bounding box** once (`bx, by, bw, bh` in video space).  
+2. Store `walkCalib` with frame size `fw, fh`.  
+3. Scale: `scale = player.height / bh` (content height → `manH_scene`).  
+4. Draw the **full keyed frame** at that scale.  
+5. Align so content **feet** land on `player.y` (foot center X on `player.x`).
 
----
+Subsequent frames reuse the same calib — no per-frame re-measure, no per-frame crop.
 
-## 6. In-game animation architecture
+### Idle vs walk
 
-### States
-
-| State | Visual | Motion |
-|-------|--------|--------|
-| Idle | `character.png` (keyed) | `vx ≈ 0`, not moving to a target |
-| Walk | Chroma’d frame from `walk.mp4` | Accelerating / cruising toward `targetX` |
-| Settle | Blend or hard cut back to idle | Decelerating / arrived |
+| State | Source | Size |
+|-------|--------|------|
+| Idle | `idle.png` (pre-cropped) | Height = `manH_scene`; width from idle aspect |
+| Walk | Full keyed video frame | Scale from first-frame content height; full frame drawn |
 
 ### Critical draw rule
 
 **Never draw full-opacity idle under full walk frames.**
 
-That produced “multiple layers of character walking.”
+1. **Hard cut** (simplest): `if walkBlend >= 0.5 → walk else idle`  
+2. **True crossfade**: idle α = `1 - blend`, walk α = `blend`  
+3. **Do not**: idle α = 1 always with walk on top  
 
-Correct approaches:
+---
 
-1. **Hard cut** (simplest, clean):  
-   `if walkBlend >= 0.5 → walk else idle`  
-2. **True crossfade**: idle α = `1 - blend`, walk α = `blend` (sum ≈ 1).  
-3. Do **not**: idle α = 1 always, walk α = blend on top.
+## 6. Scale vs the room
 
-### Stable silhouette width
+Character height is the **scale ruler** for the whole room (`GEN_ROOM.md`).
 
-Walk crops are often **wider** than idle (legs/arms).
+| Concept | Practice |
+|---------|----------|
+| `manH_scene` | Authoritative height in scene pixels (e.g. 140–148) |
+| Feet | On shared `floorY_scene` with floor props |
+| Doors | Player should look human next to doorways |
 
-- Prefer **idle aspect** for the logical body width / shadow / hitbox.
-- Draw walk frame fitted to **same height**, centered on feet X.
-- Avoid width “pop” on start/stop.
+### Composite check (required)
+
+Render room + props + character:
+
+- Man taller than bar top / desk surface as appropriate.  
+- Props at documented % of man height.  
+- Character not a speck and not a giant.  
+
+Do not ship size that only looks good on green.
+
+---
+
+## 7. In-game motion architecture
+
+### States
+
+| State | Visual | Motion |
+|-------|--------|--------|
+| Idle | `idle.png` | `vx ≈ 0` |
+| Walk | Full keyed frame from `walk.mp4` | Moving toward `targetX` |
+| Settle | Blend back to idle | Decelerating / arrived |
 
 ### Video playback
 
@@ -206,66 +240,57 @@ Walk crops are often **wider** than idle (legs/arms).
 |---------|----------|
 | `loop` | true for in-place cycle |
 | `muted` / `playsInline` | required for autoplay policies |
-| `playbackRate` | start ~0.7–0.85; scale lightly with `vx` so feet don’t skate |
-| Unlock | `play()` on first user click; keep `walkReady` even if autoplay blocked |
-| Stop | **Pause in place**; avoid hard seek to 0 every stop (causes pop). Seek reset optional after blend finishes |
+| `playbackRate` | ~0.7–0.85; slight scale with `vx` |
+| Unlock | `play()` on first user click |
+| Stop | **Pause in place**; avoid hard seek to 0 every stop |
 
 ### Movement feel
 
-Constant speed + instant zero velocity feels like a cutscene glitch.
+- **Accelerate** up to `maxSpeed`.  
+- **Decelerate** before `targetX`.  
+- Only treat as “walking” when `vx` (or remaining distance) exceeds a small threshold.  
+- On arrival: soft anim settle, then `arriveAction`.
 
-Better:
-
-- **Accelerate** up to `WALK_MAX_SPEED`.
-- **Decelerate** using stopping distance before `targetX`.
-- Only treat as “walking” for anim when `vx` (or remaining distance) is above a small threshold.
-- On arrival: zero velocity, soft anim settle, then fire `arriveAction` (look/use/talk).
-
-Point-and-click: click ground or walk-to hotspot sets `targetX` + facing; don’t restart the whole clip from 0 on every tiny redirect unless necessary—restart is OK when beginning a new walk from idle.
+Point-and-click: click ground or walk-to hotspot sets `targetX` + facing. Horizontal only — art and rooms must assume a single floor band (`GEN_ROOM.md` walk path).
 
 ---
 
-## 7. Facing
+## 8. Facing
 
-- Art faces **right**.
-- For left: `scale(-1, 1)` around the sprite center / left edge after translate.
-- Flip draw only; keep logic position as feet X on the floor line.
-
----
-
-## 8. Hitbox / debug
-
-Player debug box (with room debug):
-
-- Draw rect ≈ on-screen idle bounds.
-- Optional label: size + `walkBlend`.
-
-URL helpers (project):
-
-- `?debug=1` — boxes on  
-- `?hideplayer=1` — room-only QA  
-- `?debug=1` without hideplayer — compare man box to props  
-
-Player should share the **same ground line** as floor props in debug view.
+- Art faces **right**.  
+- For left: `scale(-1, 1)` around the sprite.  
+- Flip draw only; logic position stays feet X on the floor line.
 
 ---
 
 ## 9. Pack files
 
 ```
-game_data/characters/<characterId>/
-  character.json          # art paths, motion, rules, default height
-  idle.png                # keyed + cropped (runtime)
-  idle.jpg                # optional raw green plate
+{contentRoot}/characters/<characterId>/
+  character.json          # art paths, motion, default height
+  idle.png                # keyed + cropped (idle draw)
+  idle.jpg                # raw green plate (regen / walk source)
   walk.mp4                # walk cycle, green plate, loopable
+  qa/                     # optional frame dumps, composites
+    walk_01.png
 ```
 
-Runtime loads via pack id (room’s `"character"` or `?character=`).
+Example `character.json` motion (calm tavern stroll):
 
-- Idle: image  
-- Walk: video frames → chroma → crop each frame (or preprocessed sheet if you graduate off video)
+```json
+"motion": {
+  "maxSpeed": 88,
+  "accel": 480,
+  "decel": 800,
+  "stopEpsilon": 2.5,
+  "playbackRate": 0.72,
+  "blendIn": 14.0,
+  "blendOut": 12.0,
+  "walkSpeedThreshold": 10
+}
+```
 
-Cache-bust query params when replacing binaries (`?v=N`).
+Cache-bust when replacing binaries (`?v=N` on the content shell).
 
 ---
 
@@ -273,35 +298,35 @@ Cache-bust query params when replacing binaries (`?v=N`).
 
 ### Idle
 
-- [ ] Reads as the same person/world as the room  
-- [ ] No green halo / holes in coat  
-- [ ] Feet on shared floor line in composite  
-- [ ] Scale sensible vs desk / door / cat  
+- [ ] Same world as the room style  
+- [ ] Age/face approved  
+- [ ] No green halo / holes in clothing  
+- [ ] Feet on shared floor line  
+- [ ] Scale sensible vs doors / bar / props  
 
 ### Walk
 
-- [ ] Mid-stride frames look adult and intentional  
-- [ ] Only **one** body visible (no ghost double)  
-- [ ] Playback speed matches move speed (no moonwalk/skate)  
-- [ ] Loop doesn’t hitch every 6s in a jarring way  
-- [ ] Redirect mid-walk doesn’t explode state  
+- [ ] Full body — no limb cut-off  
+- [ ] No horizontal squash / aspect pop frame-to-frame  
+- [ ] Only **one** body visible  
+- [ ] Gait subtle enough; playback matches move speed  
+- [ ] Loop doesn’t hitch badly  
 
 ### Stop
 
 - [ ] Decelerates instead of teleport-stop  
-- [ ] No snap to a random walk frame then idle  
-- [ ] No width pop  
-- [ ] Arrive actions fire after motion has effectively ended  
+- [ ] No snap to random walk frame  
+- [ ] Arrive actions fire after motion settles  
 
-### Live captures
+### Live captures (required)
 
 Screenshot at least:
 
 1. Idle in room  
-2. Mid-walk  
+2. Mid-walk across the clear aisle  
 3. Just after stop  
 
-Use browser automation if useful; eyes on the actual pixels beat guessing from code.
+Use agent-browser; eyes on pixels beat guessing from code.
 
 ---
 
@@ -309,14 +334,16 @@ Use browser automation if useful; eyes on the actual pixels beat guessing from c
 
 | Anti-pattern | Symptom | Fix |
 |--------------|---------|-----|
-| Goofy hero in serious room | Tone clash | Regenerate direction, not just “bigger pixels” |
-| Stretch X to fatten thin crop | Distorted coat | Re-key or re-gen; fix crop |
+| Style mismatch vs rooms | “Looks pasted in” | Regen to match backdrop direction |
+| Wrong age | Player rejects character | Regen idle with clearer age; re-walk from new idle |
+| Per-frame content crop | Cut-off limbs, jitter | Full-frame key + first-frame calib |
 | Idle α=1 under walk | Double character | Single sprite or true crossfade |
 | `currentTime = 0` every stop | Pop / glitch | Pause; blend; optional delayed reset |
 | Constant max speed | Skating + hard plant | Accel/decel + playbackRate |
+| Exaggerated walk for calm game | Feels wrong | Subtle walk brief + lower rate |
 | Size only on green | Giant or tiny in room | Composite with `manH_scene` |
-| New walk gen without idle ref | Outfit drift | Always condition on idle plate |
-| Hitbox = full video frame | Clicks miss/fat | Crop; stable idle width |
+| New walk without idle ref | Outfit drift | Always condition on idle plate |
+| Hitbox = full video frame | Clicks miss/fat | Stable idle-based logic width |
 
 ---
 
@@ -324,12 +351,12 @@ Use browser automation if useful; eyes on the actual pixels beat guessing from c
 
 Character is ready when:
 
-1. `character.png` is cleanly keyed and cropped.  
-2. `walk.mp4` matches idle identity and keys cleanly.  
+1. `idle.png` is cleanly keyed and cropped.  
+2. `walk.mp4` matches idle identity, keys cleanly, and is drawn **full-frame** with first-frame calib.  
 3. `manH_scene` drives in-game height; composite with room looks correct.  
-4. Live walk shows **one** figure, plausible gait, soft stop.  
+4. Live walk shows **one** full figure, plausible gait, soft stop, no crop/squash.  
 5. Idle / mid-walk / stop screenshots all pass the checklist.  
-6. Art direction matches the room (serious art deco in this game’s default).
+6. Art direction matches the rooms in that content root.
 
 ---
 
@@ -337,30 +364,27 @@ Character is ready when:
 
 | Concern | Document |
 |---------|----------|
-| Floor line, prop %, door hitboxes, RGB slots | `GEN_ROOM.md` |
-| Idle/walk art, chroma, motion, stop, double-draw | **This file** |
+| Empty plates, horizontal walk band, prop %, door variants, browser room QA | `GEN_ROOM.md` |
+| Idle/walk art, chroma, full-frame walk draw, motion, stop, double-draw | **This file** |
 
-Room and character share **`floorY_scene`** and **`manH_scene`**. Change one → re-check the other.
+Room and character share **`floorY_scene`** and **`manH_scene`**. Change one → re-check the other. Character cannot fix a room whose mid-floor tables block the walk aisle.
 
 ---
 
-## 14. Suggested constants (starting point)
+## 14. Suggested constants
 
-Tune per game feel; these matched a calmer Rapture room:
+| Feel | maxSpeed | playbackRate | manH_scene |
+|------|----------|--------------|------------|
+| Calm tavern / KQ stroll | ~85–95 | ~0.7–0.75 | 140 |
+| Default adventure | ~100–120 | ~0.75–0.85 | 148 |
+| Brisk | ~120–140 | ~0.85–0.95 | 148 |
 
-```text
-manH_scene / TARGET_H   ≈ 148 px (scene)
-WALK_MAX_SPEED          ≈ 110–130 px/s
-WALK_ACCEL              ≈ 500–600
-WALK_DECEL              ≈ 750–900
-WALK_PLAYBACK           ≈ 0.7–0.85
-walkBlend threshold     ≥ 0.5 → show walk only (hard cut)
-```
+Tune with eyes on mid-walk screenshots.
 
 ---
 
 ## Summary
 
-**Serious idle on pure green → careful key/crop → walk from that plate → size to manH in the room → one sprite on screen → accel/decel and soft stop → screenshot proof.**
+**Style-matched idle on pure green → careful key/crop → subtle in-place walk from that plate → full-frame key + first-frame height calib (never per-frame crop) → size to manH in the room → one sprite on screen → accel/decel and soft stop → screenshot proof in a real room.**
 
-A great character is not only a good still. It’s **identity + scale + motion + stop**, verified in the room they inhabit.
+A great character is not only a good still. It’s **identity + scale + motion + stop**, verified on the horizontal stage they actually walk.

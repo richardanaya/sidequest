@@ -78,8 +78,16 @@ export class ChromaKey {
     return this.crop;
   }
 
-  frameFromVideo(vid) {
+  /**
+   * Key a video frame. By default keeps the full frame size (stable aspect every frame).
+   * Tight content-crop makes walk width pulse as limbs move — avoid for walk cycles.
+   */
+  frameFromVideo(vid, { crop = false } = {}) {
     if (!vid || vid.readyState < 2) return null;
-    return this.keyAndCrop(vid, vid.videoWidth || 544, vid.videoHeight || 544);
+    const sw = vid.videoWidth || 544;
+    const sh = vid.videoHeight || 544;
+    if (crop) return this.keyAndCrop(vid, sw, sh);
+    this.apply(vid, this.work, this.workCtx, sw, sh);
+    return this.work;
   }
 }

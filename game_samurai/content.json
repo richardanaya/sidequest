@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "title": "Path of the Blade",
+  "subtitle": "A Short Samurai Adventure",
+  "tagline": "A blossom. A shrine. A blade. The gate waits.",
+  "defaults": {
+    "room": "bamboo_courtyard",
+    "character": "ronin",
+    "titleBackground": "ui/title.jpg",
+    "items": "items.json"
+  },
+  "characters": {
+    "ronin": {
+      "path": "characters/ronin",
+      "name": "Ronin"
+    }
+  },
+  "rooms": {
+    "bamboo_courtyard": {
+      "path": "rooms/bamboo_courtyard",
+      "name": "Bamboo Courtyard",
+      "character": "ronin"
+    },
+    "shrine_chamber": {
+      "path": "rooms/shrine_chamber",
+      "name": "Shrine Chamber",
+      "character": "ronin"
+    },
+    "torii_gate": {
+      "path": "rooms/torii_gate",
+      "name": "Garden Gate",
+      "character": "ronin"
+    }
+  }
+}

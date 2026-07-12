@@ -1,8 +1,8 @@
 /**
  * Adventure shell UI: verbs, inventory strip/expand, top bar, debug overlays.
+ * Item names/icons come from the loaded content catalog (not hard-coded games).
  */
 import { C, BOX_COLORS, VERBS } from "./palette.js";
-import { ITEMS } from "./items.js";
 
 export class UIShell {
   constructor({
@@ -10,12 +10,15 @@ export class UIShell {
     H = 540,
     UI_TOP = 428,
     TOP_BAR = 30,
+    itemsCatalog = null,
   } = {}) {
     this.W = W;
     this.H = H;
     this.UI_TOP = UI_TOP;
     this.TOP_BAR = TOP_BAR;
     this.SCENE_H = UI_TOP;
+    /** @type {Record<string, { name?: string, desc?: string, iconImg?: CanvasImageSource }>} */
+    this.itemsCatalog = itemsCatalog || {};
 
     this.verb = "Walk to";
     this.hoverName = "";
@@ -43,11 +46,18 @@ export class UIShell {
     this.updateSentence(undefined, inventory);
   }
 
+  itemName(id) {
+    return (
+      this.itemsCatalog?.[id]?.name ||
+      String(id || "item").replace(/[_-]+/g, " ")
+    );
+  }
+
   updateSentence(over, inventory) {
     if (over !== undefined) this.hoverName = over || "";
     const selected = inventory?.selected;
     if (selected && this.verb === "Use") {
-      const selectedName = ITEMS[selected]?.name || String(selected).replace(/[_-]+/g, " ");
+      const selectedName = this.itemName(selected);
       this.sentence = this.hoverName
         ? `Use ${selectedName} with ${this.hoverName}`
         : `Use ${selectedName} with…`;
@@ -83,99 +93,33 @@ export class UIShell {
 
   drawItemIcon(ctx, id, x, y, size) {
     if (!id) return;
+    const def = this.itemsCatalog?.[id] || {};
     const s = size;
     const cx = x + s / 2;
     const cy = y + s / 2;
-    const sc = s / 48;
-    if (id === "key") {
-      ctx.fillStyle = C.gold;
-      ctx.fillRect(x + 14 * sc, y + 20 * sc, 18 * sc, 6 * sc);
-      ctx.beginPath();
-      ctx.arc(x + 14 * sc, y + 23 * sc, 8 * sc, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = C.ink;
-      ctx.beginPath();
-      ctx.arc(x + 14 * sc, y + 23 * sc, 3.5 * sc, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = C.gold;
-      ctx.fillRect(x + 30 * sc, y + 26 * sc, 3.5 * sc, 9 * sc);
-      ctx.fillRect(x + 30 * sc, y + 31 * sc, 7 * sc, 3.5 * sc);
-    } else if (id === "wrench") {
-      ctx.strokeStyle = C.brass;
-      ctx.fillStyle = C.gold;
-      ctx.lineWidth = 3 * sc;
-      ctx.beginPath();
-      ctx.moveTo(x + 12 * sc, y + 34 * sc);
-      ctx.lineTo(x + 34 * sc, y + 14 * sc);
-      ctx.stroke();
-      ctx.fillRect(x + 8 * sc, y + 28 * sc, 14 * sc, 10 * sc);
-      ctx.strokeRect(x + 8.5 * sc, y + 28.5 * sc, 13 * sc, 9 * sc);
-      ctx.beginPath();
-      ctx.arc(x + 36 * sc, y + 12 * sc, 6 * sc, 0, Math.PI * 2);
-      ctx.stroke();
-    } else if (id === "fuse") {
-      ctx.fillStyle = "#c8d8e0";
-      ctx.fillRect(x + 20 * sc, y + 10 * sc, 8 * sc, 28 * sc);
-      ctx.fillStyle = C.gold;
-      ctx.fillRect(x + 18 * sc, y + 8 * sc, 12 * sc, 6 * sc);
-      ctx.fillRect(x + 18 * sc, y + 34 * sc, 12 * sc, 6 * sc);
-      ctx.strokeStyle = "#334";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(x + 24 * sc, y + 16 * sc);
-      ctx.lineTo(x + 24 * sc, y + 32 * sc);
-      ctx.stroke();
-    } else if (id === "ticket") {
-      ctx.fillStyle = "#e8dcc0";
-      ctx.fillRect(x + 10 * sc, y + 14 * sc, 28 * sc, 20 * sc);
-      ctx.strokeStyle = C.brass;
-      ctx.strokeRect(x + 10.5 * sc, y + 14.5 * sc, 27 * sc, 19 * sc);
-      ctx.fillStyle = C.ink;
-      ctx.font = `${Math.round(8 * sc)}px Cinzel, Georgia, serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText("B", cx, cy);
-    } else if (id === "note") {
-      ctx.fillStyle = "#d8c8a0";
-      ctx.fillRect(x + 11 * sc, y + 9 * sc, 26 * sc, 30 * sc);
-      ctx.strokeStyle = C.brass;
-      ctx.lineWidth = 1;
-      ctx.strokeRect(x + 11 * sc, y + 9 * sc, 26 * sc, 30 * sc);
-      ctx.strokeStyle = "rgba(120,100,70,0.6)";
-      for (let i = 0; i < 3; i++) {
-        const ly = y + 16 * sc + i * 7 * sc;
-        ctx.beginPath();
-        ctx.moveTo(x + 15 * sc, ly);
-        ctx.lineTo(x + 33 * sc, ly);
-        ctx.stroke();
-      }
-    } else if (id === "coin") {
-      ctx.fillStyle = C.gold;
-      ctx.beginPath();
-      ctx.arc(cx, cy, 12 * sc, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = C.goldLite;
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(cx, cy, 9 * sc, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.fillStyle = C.ink;
-      ctx.font = `${Math.round(11 * sc)}px Cinzel, Georgia, serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText("R", cx, cy + 1);
-    } else {
-      const name = (ITEMS[id] && ITEMS[id].name) || id;
-      ctx.fillStyle = "#2a3540";
-      ctx.fillRect(x + 6, y + 6, s - 12, s - 12);
-      ctx.strokeStyle = C.goldDim;
-      ctx.strokeRect(x + 6.5, y + 6.5, s - 13, s - 13);
-      ctx.fillStyle = C.creamDim;
-      ctx.font = `${Math.max(9, Math.round(10 * sc))}px Cinzel, Georgia, serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(name.slice(0, 4).toUpperCase(), cx, cy);
+    // Content may supply iconImg (loaded from items.json "icon" path)
+    if (def.iconImg) {
+      const img = def.iconImg;
+      const iw = img.naturalWidth || img.width || s;
+      const ih = img.naturalHeight || img.height || s;
+      const scale = Math.min((s - 8) / iw, (s - 8) / ih);
+      const dw = iw * scale;
+      const dh = ih * scale;
+      ctx.drawImage(img, cx - dw / 2, cy - dh / 2, dw, dh);
+      return;
     }
+    // Generic content-driven tile: label from catalog name
+    const name = def.name || String(id).replace(/[_-]+/g, " ");
+    const tint = def.color || "#2a3540";
+    ctx.fillStyle = tint;
+    ctx.fillRect(x + 6, y + 6, s - 12, s - 12);
+    ctx.strokeStyle = C.goldDim;
+    ctx.strokeRect(x + 6.5, y + 6.5, s - 13, s - 13);
+    ctx.fillStyle = C.creamDim;
+    ctx.font = `${Math.max(9, Math.round(s * 0.22))}px Cinzel, Georgia, serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(name.slice(0, 4).toUpperCase(), cx, cy);
   }
 
   wrapText(ctx, text, x, y, maxW, lineH) {
@@ -379,6 +323,7 @@ export class UIShell {
     if (this.objectFilter && !this.objectFilter.has("player")) return;
 
     const walkSprite = player.captureWalkFrame();
+    const walkRect = player.getWalkDrawRect?.() || null;
     const h = player.height;
     const idleAspect =
       player.idleCanvas && player.idleCanvas.height
@@ -387,8 +332,8 @@ export class UIShell {
     const w = Math.round(h * idleAspect);
     player.w = w;
     player.h = h;
-    const drawX = player.x - w / 2;
-    const drawY = player.y - h;
+    const idleX = player.x - w / 2;
+    const idleY = player.y - h;
 
     const shadowA = 0.22 + player.walkBlend * 0.08;
     ctx.fillStyle = `rgba(0,0,0,${shadowA})`;
@@ -409,9 +354,10 @@ export class UIShell {
       ctx.save();
       ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
       if (player.facing < 0) {
-        ctx.translate(dx + dw, dy);
+        // Flip around foot/center X so feet stay planted
+        ctx.translate(player.x, dy);
         ctx.scale(-1, 1);
-        ctx.drawImage(sprite, 0, 0, dw, dh);
+        ctx.drawImage(sprite, dx - player.x, 0, dw, dh);
       } else {
         ctx.drawImage(sprite, dx, dy, dw, dh);
       }
@@ -419,18 +365,17 @@ export class UIShell {
     };
 
     const blend = player.walkBlend;
-    if (blend >= 0.5 && walkSprite) {
-      const wh = h;
-      const ww = walkSprite.height
-        ? Math.round(wh * (walkSprite.width / walkSprite.height))
-        : w;
-      drawSprite(walkSprite, player.x - ww / 2, drawY, ww, wh, 1);
+    if (blend >= 0.5 && walkSprite && walkRect) {
+      // Full walk frame, scaled from first-frame content height — no crop, no squash
+      drawSprite(walkSprite, walkRect.dx, walkRect.dy, walkRect.dw, walkRect.dh, 1);
     } else {
-      drawSprite(player.idleCanvas, drawX, drawY, w, h, 1);
+      drawSprite(player.idleCanvas, idleX, idleY, w, h, 1);
     }
 
     if (this.showHitbox) {
       const col = BOX_COLORS.player;
+      const drawX = idleX;
+      const drawY = idleY;
       ctx.save();
       ctx.setLineDash([5, 4]);
       ctx.strokeStyle = col;

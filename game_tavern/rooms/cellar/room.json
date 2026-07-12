@@ -1,0 +1,96 @@
+{
+  "id": "cellar",
+  "name": "Cellar",
+  "version": 2,
+  "description": "Stone vault. Clear floor strip. Stairs left, casks along the back wall.",
+  "character": "tavernkeep",
+  "backdrop": "backdrop.jpg",
+  "script": "script.json",
+  "walkBounds": { "min": 120, "max": 800 },
+  "imageSize": [1280, 720],
+  "sceneSize": [960, 428],
+  "floorY_image": 640,
+  "floorY_scene": 382,
+  "manH_scene": 140,
+  "spawn": { "xFactor": 0.28, "facing": 1 },
+  "spawns": {
+    "from_east": { "xFactor": 0.28, "facing": 1 },
+    "from_west": { "xFactor": 0.28, "facing": 1 }
+  },
+  "exits": {
+    "west": {
+      "room": "common_room",
+      "spawn": "from_cellar",
+      "walkX": 150,
+      "hotspot": "stairs"
+    }
+  },
+  "slots": {
+    "stairs": {
+      "id": "stairs",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 20,
+      "sceneDrawY": 40,
+      "sceneDrawW": 150,
+      "sceneDrawH": 320,
+      "walkX": 150,
+      "hx": 30,
+      "hy": 50,
+      "hw": 140,
+      "hh": 300,
+      "prop": null
+    },
+    "shelves": {
+      "id": "shelves",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 220,
+      "sceneDrawY": 120,
+      "sceneDrawW": 160,
+      "sceneDrawH": 180,
+      "walkX": 300,
+      "hx": 230,
+      "hy": 130,
+      "hw": 150,
+      "hh": 170,
+      "prop": null
+    },
+    "royal_cask": {
+      "id": "royal_cask",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 480,
+      "sceneDrawY": 160,
+      "sceneDrawW": 200,
+      "sceneDrawH": 160,
+      "walkX": 560,
+      "hx": 490,
+      "hy": 170,
+      "hw": 180,
+      "hh": 150,
+      "prop": null
+    },
+    "barrel_rack": {
+      "id": "barrel_rack",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 740,
+      "sceneDrawY": 140,
+      "sceneDrawW": 160,
+      "sceneDrawH": 200,
+      "walkX": 780,
+      "hx": 750,
+      "hy": 150,
+      "hw": 140,
+      "hh": 190,
+      "prop": null
+    }
+  },
+  "hotspotMeta": {
+    "stairs": { "name": "stairs up", "noSprite": true },
+    "shelves": { "name": "empty shelves", "noSprite": true },
+    "royal_cask": { "name": "crowned cask", "noSprite": true },
+    "barrel_rack": { "name": "barrel rack", "noSprite": true }
+  }
+}

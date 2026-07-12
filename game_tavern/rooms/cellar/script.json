@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "entry": {
+    "text": "Cool stone and the sweet smell of malt. The crowned cask waits among the racks."
+  },
+  "flags": {
+    "filledAle": false
+  },
+  "maximumScore": 15,
+  "objects": {
+    "stairs": {
+      "name": "stairs up",
+      "look": [{ "say": "Stairs back up to the common room." }],
+      "use": [
+        {
+          "transition": { "room": "common_room", "spawn": "from_cellar" },
+          "say": "You climb back up to the warmth."
+        }
+      ]
+    },
+    "shelves": {
+      "name": "empty shelves",
+      "look": [{ "say": "Bare shelves. Nothing useful here — the ale is in the casks." }],
+      "take": [{ "say": "Dust and nothing more." }],
+      "use": [{ "say": "Empty." }]
+    },
+    "royal_cask": {
+      "name": "crowned cask",
+      "look": [
+        {
+          "when": { "flag": "filledAle" },
+          "say": "The royal cask still holds plenty. Your tankard is already full."
+        },
+        {
+          "when": { "hasItem": "royal_ale" },
+          "say": "You already carry a tankard of royal ale."
+        },
+        {
+          "when": { "hasItem": "tankard" },
+          "say": "A fine cask marked with a crown. Your empty tankard would fit under the spigot."
+        },
+        { "say": "A cask banded in brass, a tiny crown burned into the wood. Royal ale — if you had a tankard." }
+      ],
+      "use": [
+        {
+          "when": { "hasItem": "royal_ale" },
+          "say": "You already have royal ale."
+        },
+        {
+          "when": { "not": { "hasItem": "tankard" } },
+          "say": "You need an empty tankard. There's one on the bar upstairs."
+        },
+        {
+          "setFlag": "filledAle",
+          "remove": "tankard",
+          "give": "royal_ale",
+          "say": "You draw a perfect pour of royal ale — gold, foam, and a king's promise.",
+          "score": { "id": "ale", "points": 15, "reason": "Drew the royal ale" }
+        }
+      ],
+      "useWith": {
+        "tankard": [
+          {
+            "when": { "hasItem": "royal_ale" },
+            "say": "Already full."
+          },
+          {
+            "setFlag": "filledAle",
+            "remove": "tankard",
+            "give": "royal_ale",
+            "say": "You draw a perfect pour of royal ale — gold, foam, and a king's promise.",
+            "score": { "id": "ale", "points": 15, "reason": "Drew the royal ale" }
+          }
+        ],
+        "royal_ale": [{ "say": "One tankard is enough." }],
+        "flour": [{ "say": "Flour and ale don't mix. Bake upstairs." }],
+        "loaf": [{ "say": "Bread doesn't belong on a spigot." }],
+        "notice": [{ "say": "The notice sent you here. Fill a tankard." }],
+        "cellar_key": [{ "say": "The cask isn't locked." }]
+      }
+    },
+    "barrel_rack": {
+      "name": "barrel rack",
+      "look": [{ "say": "Common ale for common nights. The crowned cask is the one that matters." }],
+      "use": [{ "say": "Save those for the regulars. The King wants the crowned cask." }],
+      "take": [{ "say": "Too heavy, and the wrong brew." }]
+    }
+  },
+  "objectives": [
+    {
+      "when": { "hasItem": "royal_ale" },
+      "text": "Goal: bake a golden loaf (flour in the courtyard, oven upstairs)"
+    },
+    {
+      "when": { "hasItem": "tankard" },
+      "text": "Goal: use the tankard with the crowned cask"
+    },
+    { "text": "Goal: bring an empty tankard from the bar upstairs" }
+  ]
+}

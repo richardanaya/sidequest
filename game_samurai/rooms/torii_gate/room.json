@@ -1,0 +1,47 @@
+{
+  "id": "torii_gate",
+  "name": "Garden Gate",
+  "version": 1,
+  "description": "Misty garden path ending at a closed wooden gate.",
+  "character": "ronin",
+  "backdrop": "backdrop.jpg",
+  "script": "script.json",
+  "walkBounds": { "min": 90, "max": 700 },
+  "imageSize": [1280, 720],
+  "sceneSize": [960, 428],
+  "floorY_image": 620,
+  "floorY_scene": 372,
+  "manH_scene": 148,
+  "spawn": { "xFactor": 0.28, "facing": 1 },
+  "spawns": {
+    "from_west": { "xFactor": 0.25, "facing": 1 },
+    "from_east": { "xFactor": 0.62, "facing": -1 }
+  },
+  "exits": {
+    "west": {
+      "room": "shrine_chamber",
+      "spawn": "from_east",
+      "walkX": 110
+    }
+  },
+  "slots": {
+    "gate": {
+      "id": "gate",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 500,
+      "sceneDrawY": 50,
+      "sceneDrawW": 280,
+      "sceneDrawH": 310,
+      "walkX": 540,
+      "hx": 520,
+      "hy": 70,
+      "hw": 240,
+      "hh": 280,
+      "prop": null
+    }
+  },
+  "hotspotMeta": {
+    "gate": { "name": "garden gate", "noSprite": true }
+  }
+}

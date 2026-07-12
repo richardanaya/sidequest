@@ -46,13 +46,15 @@ This file is the **layout contract** for shipping multiple characters and rooms.
 └── CONTENT.md                   # this file
 ```
 
-**Split:** `game_data/` = content. `js/` + `index.html` = engine shell.
+**Split:** each **game** is a content folder (`game_sealed/`, `game_samurai/`, …). `js/` + HTML shells = engine.
+
+Boot with `contentRoot` (or URL `?content=game_samurai`). Defaults are set in `index.html` / `sealed.html` — **never hard-code a single global content folder in the engine.**
 
 **IDs:** `snake_case`, stable forever once shipped  
-Examples: `protagonist`, `maintenance_hall`
+Examples: `protagonist`, `ronin`, `maintenance_hall`, `bamboo_courtyard`
 
-Paths **inside** `content.json` and pack manifests are relative to **`game_data/`** (not the repo root).  
-Example: `"path": "rooms/maintenance_hall"` → `game_data/rooms/maintenance_hall/`.
+Paths **inside** `content.json` and pack manifests are relative to **that game’s content root** (not the repo root).  
+Example: `"path": "rooms/bamboo_courtyard"` → `game_samurai/rooms/bamboo_courtyard/`.
 
 ---
 

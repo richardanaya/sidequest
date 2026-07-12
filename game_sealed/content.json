@@ -6,7 +6,8 @@
   "defaults": {
     "room": "maintenance_hall",
     "character": null,
-    "titleBackground": "ui/title.jpg"
+    "titleBackground": "ui/title.jpg",
+    "items": "items.json"
   },
   "characters": {
     "protagonist": {

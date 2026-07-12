@@ -1,0 +1,173 @@
+{
+  "id": "common_room",
+  "name": "Common Room",
+  "version": 2,
+  "description": "Open tavern hall. Clear floor left–right. Hearth and bar along the back wall.",
+  "character": "tavernkeep",
+  "backdrop": "backdrop_sealed.jpg",
+  "backdrops": [
+    { "when": { "flag": "cellarOpen" }, "src": "backdrop_open.jpg" },
+    { "src": "backdrop_sealed.jpg" }
+  ],
+  "script": "script.json",
+  "walkBounds": { "min": 80, "max": 880 },
+  "imageSize": [1280, 720],
+  "sceneSize": [960, 428],
+  "floorY_image": 640,
+  "floorY_scene": 378,
+  "manH_scene": 140,
+  "spawn": { "xFactor": 0.5, "facing": 1 },
+  "spawns": {
+    "from_west": { "xFactor": 0.2, "facing": 1 },
+    "from_east": { "xFactor": 0.8, "facing": -1 },
+    "from_cellar": { "xFactor": 0.16, "facing": 1 },
+    "from_courtyard": { "xFactor": 0.84, "facing": -1 }
+  },
+  "exits": {
+    "west": {
+      "room": "cellar",
+      "spawn": "from_east",
+      "walkX": 110,
+      "hotspot": "cellar_door",
+      "when": { "flag": "cellarOpen" }
+    },
+    "east": {
+      "room": "courtyard",
+      "spawn": "from_west",
+      "walkX": 870,
+      "hotspot": "courtyard_door"
+    }
+  },
+  "slots": {
+    "notice": {
+      "id": "notice",
+      "kind": "wall",
+      "noSprite": false,
+      "sceneDrawX": 545,
+      "sceneDrawY": 128,
+      "sceneDrawW": 30,
+      "sceneDrawH": 36,
+      "walkX": 560,
+      "hx": 530,
+      "hy": 115,
+      "hw": 60,
+      "hh": 60,
+      "prop": "props/notice.png"
+    },
+    "mantel": {
+      "id": "mantel",
+      "kind": "wall",
+      "noSprite": false,
+      "sceneDrawX": 348,
+      "sceneDrawY": 178,
+      "sceneDrawW": 22,
+      "sceneDrawH": 28,
+      "walkX": 360,
+      "hx": 310,
+      "hy": 140,
+      "hw": 100,
+      "hh": 90,
+      "prop": "props/key.png"
+    },
+    "tankard_prop": {
+      "id": "tankard_prop",
+      "kind": "floor",
+      "noSprite": false,
+      "sceneDrawX": 655,
+      "sceneDrawY": 216,
+      "sceneDrawW": 22,
+      "sceneDrawH": 24,
+      "walkX": 665,
+      "hx": 638,
+      "hy": 212,
+      "hw": 55,
+      "hh": 48,
+      "prop": "props/tankard.png"
+    },
+    "oven": {
+      "id": "oven",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 300,
+      "sceneDrawY": 100,
+      "sceneDrawW": 160,
+      "sceneDrawH": 170,
+      "walkX": 380,
+      "hx": 310,
+      "hy": 110,
+      "hw": 150,
+      "hh": 160,
+      "prop": null
+    },
+    "kings_table": {
+      "id": "kings_table",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 520,
+      "sceneDrawY": 200,
+      "sceneDrawW": 220,
+      "sceneDrawH": 90,
+      "walkX": 620,
+      "hx": 530,
+      "hy": 200,
+      "hw": 200,
+      "hh": 95,
+      "prop": null
+    },
+    "bar": {
+      "id": "bar",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 520,
+      "sceneDrawY": 200,
+      "sceneDrawW": 220,
+      "sceneDrawH": 90,
+      "walkX": 640,
+      "hx": 530,
+      "hy": 200,
+      "hw": 200,
+      "hh": 95,
+      "prop": null
+    },
+    "cellar_door": {
+      "id": "cellar_door",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 30,
+      "sceneDrawY": 70,
+      "sceneDrawW": 130,
+      "sceneDrawH": 260,
+      "walkX": 110,
+      "hx": 40,
+      "hy": 80,
+      "hw": 120,
+      "hh": 250,
+      "prop": null
+    },
+    "courtyard_door": {
+      "id": "courtyard_door",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 820,
+      "sceneDrawY": 70,
+      "sceneDrawW": 120,
+      "sceneDrawH": 270,
+      "walkX": 870,
+      "hx": 830,
+      "hy": 80,
+      "hw": 110,
+      "hh": 260,
+      "prop": null
+    }
+  },
+  "hotspotMeta": {
+    "notice": { "name": "royal notice" },
+    "mantel": { "name": "hearth mantel" },
+    "tankard_prop": { "name": "tankard" },
+    "oven": { "name": "hearth oven", "noSprite": true },
+    "kings_table": { "name": "serving bar", "noSprite": true },
+    "bar": { "name": "bar", "noSprite": true },
+    "cellar_door": { "name": "cellar door", "noSprite": true },
+    "courtyard_door": { "name": "courtyard door", "noSprite": true }
+  }
+}

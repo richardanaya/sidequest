@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "entry": {
+    "text": "Sun on cobbles. The well sits quiet. A flour sack rests by the crates."
+  },
+  "flags": {
+    "tookFlour": false
+  },
+  "maximumScore": 5,
+  "objects": {
+    "tavern_door": {
+      "name": "tavern door",
+      "look": [{ "say": "Back into the Crown & Cup." }],
+      "use": [
+        {
+          "transition": { "room": "common_room", "spawn": "from_courtyard" },
+          "say": "You step back into the tavern."
+        }
+      ]
+    },
+    "well": {
+      "name": "well",
+      "look": [{ "say": "A stone well. Cool water, but the King asked for ale, not a drink from the yard." }],
+      "use": [{ "say": "You splash a little water on your hands. Refreshing — not dinner." }],
+      "take": [{ "say": "The well stays." }],
+      "talk": [{ "say": "Echoes only." }]
+    },
+    "flour_prop": {
+      "name": "sack of flour",
+      "look": [
+        {
+          "when": { "flag": "tookFlour" },
+          "say": "Just crates now. You took the flour."
+        },
+        {
+          "when": { "hasItem": "flour" },
+          "say": "You're already carrying flour."
+        },
+        { "say": "A tied sack of fine flour. Perfect for a golden loaf." }
+      ],
+      "take": [
+        {
+          "when": { "flag": "tookFlour" },
+          "say": "No more flour here."
+        },
+        {
+          "setFlag": "tookFlour",
+          "give": "flour",
+          "setObject": "flour_prop.taken",
+          "say": "You hoist the flour sack. The oven upstairs will do the rest.",
+          "score": { "id": "flour", "points": 5, "reason": "Took the flour" }
+        }
+      ],
+      "use": [
+        {
+          "when": { "flag": "tookFlour" },
+          "say": "Already taken."
+        },
+        {
+          "setFlag": "tookFlour",
+          "give": "flour",
+          "setObject": "flour_prop.taken",
+          "say": "You hoist the flour sack. The oven upstairs will do the rest.",
+          "score": { "id": "flour", "points": 5, "reason": "Took the flour" }
+        }
+      ]
+    },
+    "crates": {
+      "name": "crates",
+      "look": [
+        {
+          "when": { "flag": "tookFlour" },
+          "say": "Empty crates against the fence."
+        },
+        { "say": "Storage crates. A flour sack sits with them." }
+      ],
+      "use": [{ "say": "If you need flour, take the sack." }],
+      "take": [{ "say": "The crates are empty of everything but air — except that flour sack." }]
+    },
+    "gate": {
+      "name": "yard gate",
+      "look": [{ "say": "The gate to the road. Guests will come through here — after you set the feast." }],
+      "use": [{ "say": "No time for a stroll. The King dines soon." }],
+      "take": [{ "say": "Fixed to the posts." }]
+    }
+  },
+  "objectives": [
+    {
+      "when": { "hasItem": "flour" },
+      "text": "Goal: bake the flour in the hearth oven"
+    },
+    { "text": "Goal: take the flour sack by the crates" }
+  ]
+}

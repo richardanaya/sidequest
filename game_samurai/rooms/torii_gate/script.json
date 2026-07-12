@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "entry": {
+    "text": "The garden path ends at a closed gate. Beyond it, the world."
+  },
+  "flags": {
+    "gateOpen": false
+  },
+  "maximumScore": 25,
+  "objects": {
+    "gate": {
+      "name": "garden gate",
+      "look": [
+        {
+          "when": { "flag": "gateOpen" },
+          "say": "The gate stands open. Your path begins."
+        },
+        {
+          "when": { "hasItem": "katana" },
+          "say": "A sturdy wooden gate. With the master's blade at your side, you may pass."
+        },
+        { "say": "A closed garden gate. A samurai does not leave without their blade." }
+      ],
+      "talk": [{ "say": "The wood does not answer." }],
+      "take": [{ "say": "The gate is fixed to the path." }],
+      "use": [
+        {
+          "when": { "flag": "gateOpen" },
+          "win": "You step through the gate. Mist, road, and sky. The path of the blade is yours."
+        },
+        {
+          "when": { "not": { "hasItem": "katana" } },
+          "say": "The gate will not open. You need the master's blade — from the shrine."
+        },
+        {
+          "setFlag": "gateOpen",
+          "remove": "katana",
+          "score": { "id": "escape", "points": 25, "reason": "Opened the garden gate" },
+          "win": "You rest the blade at your side and open the gate. Mist, road, and sky. The path of the blade is yours."
+        }
+      ],
+      "useWith": {
+        "katana": [
+          {
+            "when": { "flag": "gateOpen" },
+            "say": "Already open."
+          },
+          {
+            "setFlag": "gateOpen",
+            "remove": "katana",
+            "score": { "id": "escape", "points": 25, "reason": "Opened the garden gate" },
+            "win": "You rest the blade at your side and open the gate. Mist, road, and sky. The path of the blade is yours."
+          }
+        ],
+        "letter": [
+          {
+            "say": "The letter already led you true. The gate wants the blade."
+          }
+        ],
+        "blossom": [
+          {
+            "say": "The blossom belonged at the shrine, not here."
+          }
+        ]
+      }
+    }
+  },
+  "objectives": [
+    { "when": { "flag": "gateOpen" }, "text": "You have begun." },
+    { "when": { "hasItem": "katana" }, "text": "Goal: open the garden gate" },
+    { "text": "Goal: return with the master's blade" }
+  ]
+}

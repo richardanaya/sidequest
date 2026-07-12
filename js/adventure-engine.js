@@ -12,7 +12,6 @@ import { Inventory } from "./inventory.js";
 import { Player } from "./player.js";
 import { Room } from "./room.js";
 import { UIShell } from "./ui.js";
-import { ITEMS, TEST_INV_IDS } from "./items.js";
 import { C } from "./palette.js";
 import { ActionQueue } from "./action-queue.js";
 import { AudioBus } from "./audio-bus.js";
@@ -46,7 +45,7 @@ export class AdventureEngine {
     statusEl = null,
     titleEl = null,
     cacheBust = `?v=${Date.now()}`,
-    contentRoot = "game_data",
+    contentRoot = null,
     room = null,
     character = null,
     showTitle = true,
@@ -68,11 +67,23 @@ export class AdventureEngine {
     this.roomId = room || this.urlParams.get("room") || null;
     this.characterId = character || this.urlParams.get("character") || null;
 
-    this.loader = new ContentLoader({ cacheBust, root: contentRoot });
+    // Content pack root: constructor → ?content= → default game folder
+    const root =
+      contentRoot ||
+      this.urlParams.get("content") ||
+      this.urlParams.get("game") ||
+      "game_sealed";
+    this.contentRoot = String(root).replace(/\/+$/, "");
+
+    this.loader = new ContentLoader({ cacheBust, root: this.contentRoot });
     this.chroma = new ChromaKey();
     this.dialogue = new Dialogue();
     this.state = new GameState();
-    this.saves = new SaveStore();
+    // Isolate saves per game so sealed / samurai don't collide
+    this.saves = new SaveStore({
+      prefix: `adventure.${this.contentRoot}.save.`,
+      metaKey: `adventure.${this.contentRoot}.save.meta`,
+    });
     this.actions = new ActionQueue();
     this.audio = new AudioBus();
     this.transition = new Transition();
@@ -92,6 +103,8 @@ export class AdventureEngine {
       stripY: this.UI_TOP + 40,
     });
     this.player = new Player({ chroma: this.chroma, walkVideo: this.walkVideo });
+    /** Filled from {contentRoot}/items.json — never hard-coded per game in JS. */
+    this.itemsCatalog = {};
 
     this.runtime = new ScriptRuntime(this._runtimeServices());
     this.conversations = new ConversationSystem({ state: this.state, runtime: this.runtime, dialogue: this.dialogue });
@@ -108,7 +121,7 @@ export class AdventureEngine {
         this.state.pushLog(t, o?.speaker);
       },
       inventory: this.inventory,
-      itemsCatalog: ITEMS,
+      itemsCatalog: this.itemsCatalog,
       state: this.state,
       runtime: this.runtime,
     });
@@ -117,6 +130,7 @@ export class AdventureEngine {
       H: this.H,
       UI_TOP: this.UI_TOP,
       TOP_BAR: this.TOP_BAR,
+      itemsCatalog: this.itemsCatalog,
     });
 
     this._applyDebugParams();
@@ -260,12 +274,12 @@ export class AdventureEngine {
     if (!src) return src;
     if (src.startsWith("http") || src.startsWith("data:") || src.startsWith("blob:"))
       return src;
-    // Absolute under game_data or pack-relative paths
+    // Pack-relative or already under a content root
     if (
       src.startsWith("rooms/") ||
       src.startsWith("characters/") ||
       src.startsWith("ui/") ||
-      src.startsWith("game_data/")
+      src.startsWith("game_")
     ) {
       return this.loader.packUrl(src);
     }
@@ -301,7 +315,9 @@ export class AdventureEngine {
         .filter(Boolean);
       this.ui.objectFilter = ids.length ? new Set(ids) : null;
     }
-    if (this._truthyParam("testinv")) this.inventory.seed(TEST_INV_IDS);
+    if (this._truthyParam("testinv")) {
+      this.inventory.seed(Object.keys(this.itemsCatalog || {}));
+    }
   }
 
   setStatus(text, cls = "") {
@@ -325,8 +341,12 @@ export class AdventureEngine {
       sfx: this.state.settings.sfxVolume,
     });
 
-    // Title splash before gameplay so the landing menu isn't a flat void
+    // Content root: branding, items catalog, then optional title menu
     await this.loadTitleBackground();
+    await this.loadContentCatalog();
+    if (this._truthyParam("testinv")) {
+      this.inventory.seed(Object.keys(this.itemsCatalog || {}));
+    }
 
     if (this.showTitle && !this.skipTitle) {
       this.menus.show(MenuMode.TITLE);
@@ -489,6 +509,7 @@ export class AdventureEngine {
         148
     );
     this.player.setGroundY(this.room.floorY);
+    this.player.resetWalkCalibration?.();
 
     const spawn =
       (spawnId && loaded.roomPack.spawns?.[spawnId]) ||
@@ -810,7 +831,9 @@ export class AdventureEngine {
     }
     if (ui.type === "inv" && ui.id) {
       if (this.ui.verb === "Look at") {
-        this.dialogue.say(ITEMS[ui.id]?.desc || `It's ${this.itemName(ui.id)}.`);
+        this.dialogue.say(
+          this.itemsCatalog[ui.id]?.desc || `It's ${this.itemName(ui.id)}.`
+        );
         return true;
       }
       if (this.ui.verb === "Use" || this.ui.verb === "Walk to" || inv.expanded) {
@@ -1197,7 +1220,23 @@ export class AdventureEngine {
   }
 
   itemName(id) {
-    return ITEMS[id]?.name || String(id || "item").replace(/[_-]+/g, " ");
+    return (
+      this.itemsCatalog?.[id]?.name ||
+      String(id || "item").replace(/[_-]+/g, " ")
+    );
+  }
+
+  /** Apply content-root item catalog (from items.json). */
+  setItemsCatalog(catalog = {}) {
+    this.itemsCatalog = catalog && typeof catalog === "object" ? catalog : {};
+    if (this.room) this.room.itemsCatalog = this.itemsCatalog;
+    if (this.ui) this.ui.itemsCatalog = this.itemsCatalog;
+  }
+
+  async loadContentCatalog() {
+    const catalog = await this.loader.loadItemsCatalog();
+    this.setItemsCatalog(catalog);
+    return catalog;
   }
 
   async combineItems(first, second) {
@@ -1271,7 +1310,6 @@ export {
   Player,
   Room,
   UIShell,
-  ITEMS,
   ActionQueue,
   AudioBus,
   GameState,

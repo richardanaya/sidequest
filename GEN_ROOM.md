@@ -1,98 +1,175 @@
 # GEN_ROOM — Building high-quality adventure rooms
 
-Practical pipeline and quality bar for point-and-click rooms in this project (Rapture / art-deco style). Derived from what actually worked in production: **one fixed-camera plate as authority, segmentation-driven placement, man-as-ruler scale, state-variant backdrops for doors/hatches, composite + browser visual QA.**
+Practical pipeline and quality bar for point-and-click rooms in this project. Derived from what actually worked (and failed) across **Sealed**, **Path of the Blade**, and **The Crown & Cup**: **one fixed-camera plate as authority, empty architecture first, horizontal walk band, man-as-ruler scale, state-variant backdrops for gated doors, props as separate green-screen sprites, browser visual QA.**
 
-**Pack layout:** each room is a folder pack under `game_data/rooms/<roomId>/` with `room.json` + assets. See [`CONTENT.md`](./CONTENT.md) for the contract. This file is *how to author* a good room pack.
+**Pack layout:** each room is a folder pack under `{contentRoot}/rooms/<roomId>/` (e.g. `game_tavern/rooms/common_room/`) with `room.json` + assets. See [`CONTENT.md`](./CONTENT.md) for the multi-game contract. This file is *how to author* a good room pack.
 
 ---
 
 ## Goals
 
 - One **fixed camera** room that reads as a designed space (not stickers on a wallpaper).
-- Props that sit on a shared floor line or hang on real wall panels.
+- A **clear left→right walk path** — this engine only walks horizontally on a floor band.
+- Props that sit on a shared floor line or hang on real wall panels (**never baked into the backdrop**).
 - Scale that matches the **player character** as the unit of measure.
-- A repeatable way to **catch bad placement** before shipping.
+- Gated doorways that **look** sealed until the flag flips (art variants, not JS door drawings).
+- A repeatable way to **catch bad placement** before shipping (agent-browser screenshots).
 
-Avoid early on: multi-panel side-scroll corridors, freehand world coordinates, and “place everything then hope.”
+Avoid early on: multi-panel side-scroll corridors, freehand world coordinates, mid-floor furniture, items painted into the plate, and “place everything then hope.”
 
 ---
 
 ## End-to-end pipeline
 
 ```
-1. Backdrop          → single room image (no stitching until one room is perfect)
-2. Read the image    → name walkable floor, wall panels, built-in architecture
-3. Slot plan         → which props belong where (floor vs wall)
-4. RGB segmentation  → solid color masks for each slot on black/dark base
-5. Centroids         → feet / hang centers from each color region
-6. placements.json   → draw rects + hitboxes in scene space
-7. Props             → generate on pure green, chroma-key, tight crop to PNG
-8. Composite render  → full room + props + man silhouette
-9. Visual QA         → fix scales/anchors; re-export JSON
-10. In-game check    → browser screenshot; ?debug=1 boxes; isolate objects
+1. Art direction lock   → same style as the whole game (VGA pixel, painted Sierra, art-deco…)
+2. EMPTY backdrop       → architecture only; no pickups, no inventory items, no NPCs
+3. Walk-path check      → lower third clear left→right; furniture on back wall / sides only
+4. Read the image       → floor line, doors, hang bands, keep-outs
+5. Slot plan            → floor vs wall; which props vs noSprite architecture
+6. Props on green       → generate AFTER backdrop is locked; key + crop
+7. room.json slots      → draw rects, hitboxes, walkX; manH_scene as ruler
+8. Gated doors?         → crop→edit→paste sealed/open plates (never full-room regen)
+9. script.json          → puzzles, flags, objectives that point to the next step
+10. Live browser QA     → every room: clean + ?debug=1; fix scale/placement; re-screenshot
 ```
 
-Ship only when **composite** and **live game** both look right.
+Ship only when **every room** has been visually sanity-checked in the live game (not just JSON existence).
 
 ---
 
-## 1. Backdrop first
+## 0. Multi-game content roots
+
+Each game is its own folder. Engine never hard-codes a single content tree.
+
+```text
+game_sealed/     # Rapture-style
+game_samurai/    # Path of the Blade
+game_tavern/     # The Crown & Cup (King's Quest / VGA)
+js/              # engine only
+index.html       # ?content=game_tavern | game_samurai | game_sealed
+```
+
+Paths in `content.json` and pack manifests are relative to **that game’s root**.
+
+---
+
+## 1. Horizontal walk path (engine hard constraint)
+
+**The player only moves on X.** Feet stay on `floorY_scene`. There is no free 2D pathfinding around furniture.
+
+### Do
+
+- Keep the **lower third / foreground strip completely clear** left→right.
+- Put furniture, wells, barrels, tables, crates against the **back wall or far sides**.
+- Stage like classic Sierra: character walks *in front of* mid-ground architecture.
+- Design doors on the **far left and far right** of the walk band.
+
+### Don’t
+
+- Mid-room tables, wells, or counters blocking the floor strip (e.g. tavern common room with trestle tables in the aisle — **failed**).
+- Props whose draw bottoms sit on the walk plane if they should read as mid-ground (depth via higher `sceneDrawY` is OK; blocking the front aisle is not).
+- Assume the player can walk “around” something — they can’t.
+
+### Walk-path checklist (before generating props)
+
+- [ ] Can you draw a horizontal line for feet from left exit to right exit with no furniture crossing it?
+- [ ] Important interactables are reachable by `walkX` on that band?
+- [ ] Courtyard wells / crate stacks sit **back** against a fence or wall?
+
+Document this in the game’s `VISION.md` when the style is locked.
+
+---
+
+## 2. Empty backdrop first (no baked items)
+
+### Rule
+
+| Backdrop may include | Backdrop must NOT include |
+|----------------------|---------------------------|
+| Architecture (walls, floor, beams) | Inventory pickups (keys, tankards, letters) |
+| Built-in furniture shells (empty bar, empty shelves) | Food, bottles, flowers meant to be taken |
+| Painted doorways / stairs | NPCs that are also prop sprites |
+| Ambient décor that is never taken | Readable puzzle props the player should pick up |
+
+**Generate backdrops with nothing takeable on them.** Then add props as green-screen sprites.
+
+### Why
+
+- Baked pickups can’t hide when taken, scale independently, or share inventory icons cleanly.
+- Full-room re-gens to “remove the mug” break prop coordinates.
+- Empty plates are reusable when puzzle layout changes.
+
+### Style
+
+Match the game’s locked art direction:
+
+| Direction | Notes |
+|-----------|--------|
+| **VGA / Sierra pixel** | Chunky pixels, limited palette; post-process (downscale → quantize → nearest upscale) if gens are too smooth |
+| **Painted Sierra** | Brushy, theatrical stage, not modern CGI |
+| **Art-deco / Rapture** | Semi-realistic illustration, muted values |
+
+Photoreal CGI against pixel heroes (or vice versa) fails visual QA every time. Lock style on the **first empty room**, then match all rooms to it.
+
+---
+
+## 3. Backdrop composition
 
 ### Do
 
 - Generate **one** room image (e.g. 1280×720 or 16:9).
-- Prefer a clear **side-view hall**: readable floor tiles, wall panels, door/opening, negative space for walking.
-- Match the art direction of the game (here: somber art deco / Rapture, not cartoon slapstick).
+- Prefer a clear **side-view stage**: readable floor, back wall, left/right exits.
+- Match the art direction of the game (not a one-off style experiment).
 
 ### Don’t
 
-- Build three panels and place props across a long scroller before one room is solid.
-- Rely on painted-in furniture for *every* hotspot unless hitboxes are painted carefully—**separate prop sprites** are easier to resize and debug.
+- Build three rooms before one empty plate is approved.
+- Rely on painted-in furniture for *every* hotspot unless hitboxes are painted carefully — **separate prop sprites** are easier to resize and debug.
 
 ### Read the backdrop before placing anything
 
-Note explicitly:
-
 | Zone | What to mark |
 |------|----------------|
-| Floor contact line | Y where feet/props meet tiles (shared `FLOOR_Y`) |
-| Walk band | Horizontal strip the player can cross |
-| Wall hang bands | Mid-wall panels for portraits, safes |
+| Floor contact line | Y where feet meet tiles (`floorY_image` / `floorY_scene`) |
+| Walk band | Horizontal strip — must stay clear |
+| Wall hang bands | Mid-wall for notices, keys on mantels, portraits |
 | Architecture | Doorways already in the art → **hitbox only**, no second door sprite |
-| Keep-out | Portholes, lamps, heavy ornament—don’t cover them |
+| Keep-out | Windows, hearths, heavy ornament — don’t cover them |
 
-**Important:** A painted *open* doorway (black void) will always *look* open. If the door is gameplay-gated (needs key / power), you need a **sealed backdrop variant** (see below). Do not fix that with engine-side drawing of door plates in JS.
+**Important:** A painted *open* doorway (black void / stairs visible) will always *look* open. If the door is gameplay-gated (needs key), you need a **sealed backdrop variant** (section 4). Do not fix that with engine-side door art in JS.
 
 ---
 
-## 1b. State-variant backdrops (sealed / open doors)
+## 4. State-variant backdrops (sealed / open doors)
 
-Some rooms need the **same camera and layout**, but a doorway or hatch changes when a flag flips (hall airlock, pump east hatch, etc.).
+Some rooms need the **same camera and layout**, but a doorway changes when a flag flips (airlock, cellar door, hatch).
 
 ### Rule
 
 | Do | Don’t |
 |----|--------|
-| Keep one **authority plate** (usually the open / empty doorway) as pixel base | Full-frame re-generate the whole room for “closed door” |
-| Change **only** the doorway region for sealed/open | Let the model reseal the porthole / whale / pipes / fuse box |
+| Keep one **authority plate** (usually the open doorway) as pixel base | Full-frame re-generate the whole room for “closed door” |
+| Change **only** the doorway region for sealed/open | Let the model reseal the wrong hole or shift walls |
 | Store variants as separate JPGs under the room pack | Hand-draw door frames in `js/ui.js` |
 | Drive swaps from `room.json` + flags | Freehand new prop coords after a full regen |
+| Paste strip **wide enough** to cover open door leaf + opening | Leave a ghost open door next to a “closed” arch |
 
 ### Crop → edit → paste (required method)
 
-Full-room Imagine edits routinely “close” the wrong hole (e.g. the **whale porthole** instead of the Maintenance Access door). That also shifts walls enough to **break all prop slots**.
+Full-room Imagine edits routinely change the wrong region and shift walls enough to **break all prop slots**.
 
-1. Start from the **open** plate (empty doorway on the correct side).
-2. **Crop only** the far doorway strip — e.g. right hatch at `x ≥ ~1175` on a 1280-wide plate, so the center porthole is never in the crop.
-3. Prompt the crop explicitly: *“This is ONLY the side doorway. Do not invent portholes, whales, pipes, or fuse cabinets.”*
-4. Paste the sealed crop back onto a **copy of the open plate**.
-5. Verify with pixel stats (or a side-by-side strip): **mean abs diff left of the door ≈ 0**; door strip differs; whale/center region ≈ 0.
+1. Start from the **open** plate (empty / open doorway on the correct side).
+2. **Crop only** the doorway strip (include the open door leaf if it swings into the room).
+3. Prompt the crop explicitly: *“This is ONLY the side doorway. Close the door. Do not invent other architecture.”*
+4. Paste the sealed crop back onto a **copy of the open plate** (optional soft feather on the seam).
+5. Verify with pixel stats: **mean abs diff outside the strip ≈ 0**; door strip differs.
 
 ### Files
 
 ```text
-game_data/rooms/<roomId>/
-  backdrop_open.jpg      # authority plate (empty doorway / open hatch)
+{contentRoot}/rooms/<roomId>/
+  backdrop_open.jpg      # authority plate (open doorway)
   backdrop_sealed.jpg    # open + sealed door crop pasted in place
   backdrop.jpg           # optional alias of the default start plate
 ```
@@ -102,7 +179,7 @@ game_data/rooms/<roomId>/
 ```json
 "backdrop": "backdrop_sealed.jpg",
 "backdrops": [
-  { "when": { "flag": "airlockOpen" }, "src": "backdrop_open.jpg" },
+  { "when": { "flag": "cellarOpen" }, "src": "backdrop_open.jpg" },
   { "src": "backdrop_sealed.jpg" }
 ]
 ```
@@ -111,129 +188,140 @@ game_data/rooms/<roomId>/
 - Default/start state is usually **sealed** (door closed until the player solves something).
 - Engine loads all listed plates and calls `syncBackdrop()` when flags change — no doorway art in JS.
 
-### Examples in this game (*Sealed*)
+### Examples
 
-| Room | Sealed plate | Open plate | Flag |
-|------|--------------|------------|------|
-| `maintenance_hall` | `backdrop_sealed.jpg` | `backdrop_open.jpg` | `airlockOpen` |
-| `pump_gallery` | `backdrop_sealed.jpg` | `backdrop_open.jpg` | `powerOn` |
-| `bathysphere_dock` | single plate OK | — | Sphere already reads closed; optional later |
+| Game / room | Sealed | Open | Flag |
+|-------------|--------|------|------|
+| `game_sealed` / `maintenance_hall` | `backdrop_sealed.jpg` | `backdrop_open.jpg` | `airlockOpen` |
+| `game_sealed` / `pump_gallery` | `backdrop_sealed.jpg` | `backdrop_open.jpg` | `powerOn` |
+| `game_tavern` / `common_room` | `backdrop_sealed.jpg` | `backdrop_open.jpg` | `cellarOpen` |
 
 ### Doorway hotspots
 
-- Slot: `noSprite: true` — click target only; **never** draw a door sprite or hover outline that floats over the plate.
-- Wire exits: `exits.east.hotspot: "door"` (or `"hatch_east"`) + `when: { flag: "…" }` + clear `blockedSay`.
-- **Walk to** an open exit hotspot should leave the room (not stop at the threshold).
-- Blocked line should match the art: e.g. *“The airlock is sealed. Find a key…”* not a vague *“You can’t go that way.”*
+- Slot: `noSprite: true` — click target only; **never** draw a door sprite over the plate.
+- Wire exits + `when: { flag: "…" }` + clear blocked dialogue that matches the **art**.
+- **Walk to** an open exit should leave the room (not stop at the threshold).
+- If copy says “locked,” the plate must show a **closed** door.
 
 ### QA for variants
 
-- agent-browser (or manual): boot room sealed → screenshot; set flag → `syncBackdrop` → screenshot open.
-- Save under `game_data/rooms/<roomId>/qa/verify_sealed.png` and `verify_open.png`.
-- Compare right strip only if unsure; full-room diffs should be near zero outside the door crop.
+- agent-browser: boot sealed → `qa/verify_sealed.png`; set flag → `qa/verify_open.png`.
+- Diff outside the door strip should be ~0.
 
 ---
 
-## 2. Slot plan (before any mask)
+## 5. Slot plan (before props)
 
-List slots with type and intent, e.g.:
+List slots with type and intent:
 
 | Slot id | Kind | Prop | Notes |
 |---------|------|------|--------|
-| `door` | wall / arch | none (backdrop) | Hitbox on painted door |
-| `portrait` | wall | `portrait.png` | Center on panel between sconces |
-| `plant` | floor | `plant.png` | Feet on floor line |
-| `cat` | floor | `cat.png` | Small vs man |
-| `desk` | floor | `desk.png` | Surface near waist height |
-| `safe` | wall | `safe.png` | Above / beside desk, not floating mid-void |
+| `cellar_door` | wall | none (backdrop) | Hitbox; sealed/open plates |
+| `notice` | wall | `notice.png` | Eye level on wall, not under dialogue bar |
+| `mantel` | wall | `key.png` | Key resting on shelf surface |
+| `tankard_prop` | floor/wall | `tankard.png` | Bottom sits **on** bar top, not floating |
+| `oven` | wall | none | Hitbox on painted hearth |
+| `flour_prop` | floor | `flour.png` | At crate base, mid-ground |
 
 Only create slots you will fill. Fewer well-placed objects beat a crowded room.
 
 ---
 
-## 3. RGB segmentation mask
+## 6. Props: green screen → transparent PNG
 
-### Method
-
-Edit a **copy of the backdrop** (or black plate) so each slot is a **flat pure RGB region**:
-
-- No gradients, textures, outlines, or labels on the mask.
-- Regions **separated**, medium size, not covering critical architecture (e.g. porthole glass).
-- Background black or near-black.
-
-### Example legend (use exact colors)
-
-| Color | Hex | Slot |
-|-------|-----|------|
-| Red | `#FF0000` | door |
-| Blue | `#0000FF` | portrait |
-| Yellow | `#FFFF00` | plant |
-| Magenta | `#FF00FF` | cat |
-| Orange | `#FF8000` | desk |
-| Teal-green | `#00FF80` | safe |
-
-Prompt models explicitly: *“solid filled shapes, pure RGB, hard edges, black background.”* AI greens often drift—use tolerance when extracting.
-
-### Extract centroids
-
-For each color region:
-
-- **Floor props:**  
-  - `feetX` = mean X of mask  
-  - `feetY` = **bottom** of mask (or global `FLOOR_Y` if more consistent)  
-- **Wall props:**  
-  - `cx, cy` = mean X/Y (hang center)  
-- Also store bounding box for initial size hints.
-
-Write results into `placements.json` (image space + **scene space** scaled to the game canvas scene rect).
-
----
-
-## 4. Props: green screen → transparent PNG
-
-### Generate
+### Generate **after** the empty backdrop is approved
 
 - Full object, centered.
 - **Solid pure green `#00FF00`** only (no floor, no contact shadow on the green).
-- Style: **same seriousness as the backdrop** (refined art deco, not chibi / rubber-hose).
+- Style: **same world as the backdrop** (VGA chunk if rooms are VGA; painted if rooms are painted).
 - Side or ¾ view that matches the room camera.
 
 ### Process
 
-1. Chroma-key pure green (protect teal clothing/leaves: require high G **and** low R/B **and** green dominance).
-2. Soft edge optional; despill green fringe.
+1. Chroma-key pure green (high G, low R/B, green dominance — protect teal).
+2. Despill green fringe.
 3. **Crop to opaque bounds** (+ small pad).
-4. Save as `game_data/rooms/<roomId>/props/{id}.png`.
+4. Save as `{contentRoot}/rooms/<roomId>/props/{id}.png` (and inventory twins under `items/` if needed).
 
-### Verify
+### Inventory icons
 
-- File name matches content (swapped plant/portrait will pass code and fail eyes).
-- Crop isn’t a hairline thin strip unless the art is truly profile-thin.
-- Spot-check a walk frame the same way if using video sprites.
+Same art pipeline: green plate → key → crop → `{contentRoot}/items/{id}.png`, referenced from `items.json` with `"icon": "items/foo.png"`.
 
 ---
 
-## 5. placements.json contract
+## 7. Scale: man is the ruler
 
-Minimum useful fields per slot (scene = on-canvas adventure area, not full window):
+Do **not** size props by “looks fine alone.” Size them as **fractions of `manH_scene`**.
+
+Suggested starting ratios (drawn sprite height vs man):
+
+| Prop | ≈ % of man height | Intent |
+|------|-------------------|--------|
+| Key on mantel | 12–18% | Small, readable |
+| Tankard / mug | 14–20% | Fits on a bar; not a bucket |
+| Notice / scroll | 20–28% | Wall paper, not a tapestry |
+| Flour sack | 25–35% | Heavy bag at crate height |
+| Sitting cat | 18–24% | Shin / low knee |
+| Writing desk | 65–75% | Top near waist |
+
+Use each PNG’s **natural aspect ratio**; set height from the ratio, derive width.
+
+Typical `manH_scene`: **140–148** scene px. Match door height: player should feel human next to a doorway, not a giant or a mouse.
+
+---
+
+## 8. Placement rules
+
+### Floor / counter props
+
+- Bottom of sprite on the **contact surface** (floor line, bar top, mantel shelf) — not floating with a gap, not sunk into the face of the furniture.
+- Iterate with live screenshots: “tad higher / lower” is normal; trust eyes over first-guess Y.
+- Soft contact shadow under feet (engine ellipse), not baked into the green plate.
+
+### Wall props
+
+- Eye-level for notices (not under the dialogue banner, not in the rafters).
+- Keys rest **on** mantel tops; tankards **on** counter tops.
+- Don’t cover windows, torches, or critical architecture.
+
+### Architecture
+
+- Painted door / hatch → **hitbox only** (`noSprite: true`).
+- Gated open black openings → sealed/open plates (section 4).
+- `noSprite` hotspots: no floating gold outline.
+
+### Z-order
+
+- Draw by depth / feet Y so props don’t paint over the player incorrectly.
+
+---
+
+## 9. `room.json` contract (essentials)
 
 ```json
 {
+  "id": "common_room",
+  "backdrop": "backdrop_sealed.jpg",
+  "backdrops": [
+    { "when": { "flag": "cellarOpen" }, "src": "backdrop_open.jpg" },
+    { "src": "backdrop_sealed.jpg" }
+  ],
+  "walkBounds": { "min": 80, "max": 880 },
   "imageSize": [1280, 720],
   "sceneSize": [960, 428],
-  "floorY_image": 628,
-  "floorY_scene": 373.3,
-  "manH_scene": 148,
+  "floorY_scene": 378,
+  "manH_scene": 140,
   "slots": {
-    "desk": {
+    "tankard_prop": {
       "kind": "floor",
       "noSprite": false,
-      "sceneDrawX": 0,
-      "sceneDrawY": 0,
-      "sceneDrawW": 0,
-      "sceneDrawH": 0,
-      "walkX": 0,
-      "hx": 0, "hy": 0, "hw": 0, "hh": 0
+      "sceneDrawX": 655,
+      "sceneDrawY": 216,
+      "sceneDrawW": 22,
+      "sceneDrawH": 24,
+      "walkX": 665,
+      "hx": 638, "hy": 212, "hw": 55, "hh": 48,
+      "prop": "props/tankard.png"
     }
   }
 }
@@ -246,230 +334,162 @@ Minimum useful fields per slot (scene = on-canvas adventure area, not full windo
 | `sceneDraw*` | Where the sprite is drawn |
 | `walkX` | X the player walks to before interacting |
 | `hx,hy,hw,hh` | Click hitbox (usually inset draw rect) |
-| `manH_scene` | Player height in scene px—**scale ruler for all props** |
-
-Game should prefer **authoring-time draw rects** over recomputing from masks every load.
-
----
-
-## 6. Scale: man is the ruler
-
-Do **not** size props by “looks fine alone.” Size them as **fractions of `manH_scene`**.
-
-Suggested starting ratios (height of **drawn sprite** vs man):
-
-| Prop | ≈ % of man height | Intent |
-|------|-------------------|--------|
-| Sitting cat | 18–24% | Shin / low knee |
-| Floor planter | 32–40% | Knee–thigh urn |
-| Writing desk (+ lamp) | 65–75% | Wooden **top** near **waist** (~48–52% of man); lamp may stick higher |
-| Wall portrait | 45–55% | Large head-and-shoulders frame |
-| Wall safe | 30–38% | Strongbox, usually above desk |
-
-Use each PNG’s **natural aspect ratio**; set height from the ratio, derive width.
-
-**Character height** should come from `manH_scene` in JSON so props and player stay locked.
-
-### Desk special case
-
-Desk art often includes a lamp. The **desktop surface** should align near the man’s waist line on the composite (draw a temporary waist guide at `floorY - 0.48 * manH`). If the surface is mid-thigh, raise the whole desk sprite.
+| `manH_scene` | Player height — **scale ruler for all props** |
+| `walkBounds` | Min/max X on the horizontal band |
 
 ---
 
-## 7. Placement rules
-
-### Floor props
-
-- Bottom of sprite on **shared** `FLOOR_Y` / `floorY_scene`.
-- Center X from segmentation feet (or deliberate composition tweak).
-- Soft contact shadow under feet (ellipse), not baked into green plate.
-
-### Wall props
-
-- Center on wall panel; don’t cover sconces/portholes.
-- Safe/portrait bottoms should not float in empty sky—use wall mass as anchor.
-- Safe above desk: gap of a few px above desk top, biased toward the door wall if needed.
-
-### Architecture
-
-- Painted door / hatch → **hitbox only** (`noSprite: true`). Never stack a second door prop on a painted door.
-- If the plate shows an **empty black opening** but gameplay requires sealed until a flag, author **backdrop_sealed / backdrop_open** (section 1b). Do not invent a floating door in engine code.
-- `noSprite` hotspots: no gold hover outline in the shell (outline reads as a phantom prop).
-
-### Z-order
-
-- Sort draw by feet Y (floor) / logical depth; walls before or with consistent painter’s algorithm so cat isn’t under the floor.
-
----
-
-## 8. Hitboxes vs draw boxes
+## 10. Hitboxes vs draw boxes
 
 | Box | Purpose |
 |-----|---------|
 | **Draw rect** | Visual sprite placement |
-| **Hitbox** | Click / hover (usually inset ~8% X, ~5% Y) |
+| **Hitbox** | Click / hover (usually inset) |
 
-Debug both. A pretty sprite with a wrong hitbox feels “broken.”
-
-### In-game debug (this project)
+### In-game debug
 
 | URL | Effect |
 |-----|--------|
-| `?debug=1` | Show draw + hit boxes, labels, legend |
-| `?objects=all` | All hotspots |
+| `?debug=1` | Show draw + hit boxes, labels |
 | `?objects=plant,cat` | Isolate listed ids |
-| `?only=desk` | Single object |
-| `?hidebg=1` | Dim backdrop for clearer boxes |
+| `?hidebg=1` | Dim backdrop |
 | `?hideplayer=1` | Hide character |
-| `?labels=0` | Boxes without text |
+| `?content=game_tavern` | Select content root |
 
 Runtime: **B** toggles boxes.
 
-**Sanity:** hitboxes should hug the readable object, not huge empty transparent padding, and not miss the sprite.
-
 ---
 
-## 9. Composite sanity check (required)
+## 11. Live visual QA (required — every room)
 
-After every placement pass, render a **full composite** offline:
+Do **not** ship a room that only “works in JSON.” Use agent-browser (or manual) screenshots.
 
-1. Backdrop scaled to `sceneSize`.
-2. All props at `sceneDraw*` from JSON.
-3. Player silhouette at `manH_scene` on the floor line.
-4. Optional: waist line, % labels (`desk 104 (70%)`).
+### Per room
 
-Save e.g. `game_data/rooms/<roomId>/qa/composite_check.jpg`.
-
-### Visual checklist (composite)
-
-- [ ] One clear floor contact line for man + floor props  
-- [ ] No prop covering porthole / critical art  
-- [ ] Desk surface ≈ waist; cat clearly smaller than man  
-- [ ] Plant not character-height; portrait on a panel  
-- [ ] Safe attached to wall mass, not floating  
-- [ ] Door hitbox on the painted opening  
-- [ ] Style cohesion (no one “goofy cartoon” prop in a serious room)  
-- [ ] No swapped files (open PNGs if anything feels wrong)
-
-If the composite fails, **do not** tune only in the live game—fix JSON/assets and re-composite.
-
----
-
-## 10. Live game sanity check
-
-1. Hard-refresh with cache bust (`?v=…` on assets).
-2. Screenshot full frame (e.g. agent-browser).
-3. `?debug=1` — inspect all boxes.
-4. `?debug=1&only=plant&hidebg=1&hideplayer=1` — isolate problem props.
-5. Walk across the floor: feet should share the same ground as props; no skating if walk anim is used.
-6. Hover/click each hotspot: sentence line names the right object.
+1. Hard-refresh with cache bust (`?v=…`).
+2. Clean screenshot: `qa/sanity_clean.png` or `qa/sanity_final.png`.
+3. Debug screenshot: `?debug=1` → `qa/sanity_debug.png`.
+4. If gated door: `qa/verify_sealed.png` + `qa/verify_open.png`.
+5. Walk left↔right: clear path, feet on floor line, no skating into furniture art.
 
 ### Visual checklist (live)
 
-- [ ] Matches composite layout (no reintroduced freehand offsets)  
-- [ ] Inventory / UI not covering critical hotspots  
-- [ ] Click targets match what the eye thinks is clickable  
-- [ ] Player scale still matches `manH_scene`  
+- [ ] Clear horizontal walk band  
+- [ ] Player scale vs doors / bar / well looks human  
+- [ ] Props sit on surfaces (no float, no sink)  
+- [ ] Prop sizes sensible vs man (% of manH)  
+- [ ] Notice / wall items at readable height  
+- [ ] Locked door **looks** locked; open door **looks** open  
+- [ ] Hitboxes hug the object (`?debug=1`)  
+- [ ] Goal / dialogue text match what the eye sees  
+- [ ] Style matches other rooms in the same game  
+
+### Prop nudge loop
+
+Placement is iterative. Common fixes:
+
+| Symptom | Adjust |
+|---------|--------|
+| Tankard floats above bar | Raise drawY carefully until bottom meets counter top (often *higher* on screen = smaller Y) |
+| Key floats above mantel | Nudge drawY down onto shelf |
+| Notice in the rafters | Lower drawY to eye level beside shelves |
+| Mug huge vs hero | Shrink drawW/H (~14–20% manH) |
+
+Re-screenshot after every nudge. Don’t stop at “probably fine.”
 
 ---
 
-## 11. Art direction notes (quality of *look*, not only layout)
+## 12. Scripts & player clarity
 
-From this project’s direction passes:
-
-- **Art deco is fine; goofy is not.** Prefer serious proportions, restrained motion, muted adventure humor in copy if needed.
-- Props and character should feel like the **same world** as the backdrop (value range, detail density, “museum Rapture” vs “Saturday cartoon”).
-- Character: adult proportions, side view, clean green plate; walk cycle **measured**, low bob, loop-friendly—if motion is wrong, fix anim *and* stop/blend in code (no double-drawn idle under walk).
+- Objectives should always name the **next sensible action**.
+- Locked door copy must match sealed art.
+- Prefer multi-step puzzles that stay intuitive (notice → key → door → fill tankard → bake → serve).
+- `remove` may be a string or array of item ids when clearing multiple inventory pieces.
 
 ---
 
-## 12. Pack file layout
+## 13. Pack file layout
 
 ```
-game_data/
-  content.json                 # registry of packs + branding
-  rooms/<roomId>/
-    room.json                  # authority: slots, floor, manH, exits, backdrops
-    script.json                # optional: puzzles, flags, transitions
-    backdrop_open.jpg          # authority plate (often empty doorway)
-    backdrop_sealed.jpg        # open + sealed door crop (if gated doorway)
-    backdrop.jpg               # optional alias of default start plate
-    seg_mask.jpg               # optional RGB slots (authoring)
-    props/
-      {slotId}.png             # keyed + cropped
-    qa/
-      composite_check.jpg
-      verify_sealed.png        # live: door/hatch closed
-      verify_open.png          # live: after flag
+{contentRoot}/                 # e.g. game_tavern/
+  content.json
+  items.json
+  items/{id}.png
+  ui/title.jpg
+  VISION.md                    # art + puzzle spine
   characters/<characterId>/
-    character.json
-    idle.png
-    walk.mp4
+  rooms/<roomId>/
+    room.json
+    script.json
+    backdrop.jpg               # default start plate
+    backdrop_open.jpg          # if gated door
+    backdrop_sealed.jpg
+    props/{slot}.png
+    qa/
+      backdrop_empty_vga.jpg   # optional: locked empty plate
+      sanity_clean.png
+      sanity_debug.png
+      verify_sealed.png
+      verify_open.png
 ```
-
-Game loads packs by id (`?room=…`). Paths in JSON are relative to the room pack under `game_data/`. Masks are authoring artifacts; `room.json` is runtime authority.
 
 ---
 
-## 13. Anti-patterns (seen in this project)
+## 14. Anti-patterns
 
 | Anti-pattern | Why it fails | Do instead |
 |--------------|--------------|------------|
-| Freehand x/y on a long scroller | Props float; no shared floor | One room + `FLOOR_Y` |
-| Multi-backdrop before one is good | Split attention, inconsistent slots | Perfect one plate first |
-| **Full-room regen for “close the door”** | Model seals wrong hole (whale porthole), shifts walls, **breaks all slots** | Crop doorway only → edit → paste onto open plate |
-| **JS-drawn sealed doors in the engine** | Looks wrong, fights pack art, not content-driven | `backdrop_sealed` / `backdrop_open` + `backdrops` in `room.json` |
-| Open black doorway, no sealed plate | Player thinks they can leave; gated exit feels broken | Sealed plate as default until flag |
-| Size props in isolation | Desk/cat wrong vs man | `% of manH_scene` |
-| Skip composite | “Looks fine in code” lies | Always render composite |
-| Draw rect = full green plate | Huge empty hitboxes | Crop + inset hitbox |
-| Door prop on painted door | Double door | Hitbox only (`noSprite`) |
-| Hover outline on `noSprite` doorways | Floating gold box with no prop | No hover stroke for noSprite |
-| Walk-to open door only stops at threshold | “Door open but I can’t leave” | Exit hotspot → `goToRoom` when flag allows |
-| Idle under walk at α=1 | Double character | Single sprite or true crossfade |
-| Trust AI mask colors as exact | Drifted greens/oranges | Tolerance + visual read of mask |
+| Mid-floor tables / well on walk band | Horizontal walker can’t go around | Furniture to back wall / sides |
+| Pickups baked into backdrop | Can’t take/hide/scale | Empty plate + prop sprites |
+| Photoreal room + pixel hero | Tone clash | Lock one art direction |
+| Full-room regen for “close door” | Wrong hole sealed; slots break | Crop → edit → paste |
+| Open black doorway, no sealed plate | “Locked” feels broken | Sealed plate until flag |
+| JS-drawn doors in engine | Fights pack art | Backdrop variants |
+| Size props in isolation | Wrong vs man | % of `manH_scene` |
+| Ship without browser screenshots | Floats and scale bugs ship | QA every room live |
+| Prop float “close enough” | Looks amateur | Nudge until contact reads true |
+| Skip walk-path check | Player clips furniture | Clear aisle before props |
 
 ---
 
-## 14. Quick “definition of done”
+## 15. Definition of done
 
 A room is ready when:
 
-1. `room.json` has `manH_scene`, floor line, per-slot draw + hit + walkX.  
-2. `composite_check.jpg` looks intentional next to the man.  
-3. Live game matches composite.  
-4. `?debug=1` hitboxes are tight and labeled correctly.  
-5. Isolation mode proves each prop alone.  
-6. Art style is cohesive and not accidentally comedic.  
-7. **If a doorway is gameplay-gated:** sealed + open plates exist, `backdrops` is wired to the flag, and `qa/verify_sealed.png` + `qa/verify_open.png` agree with the art (door/hatch only changed).  
-8. **Walk to / edge exit** works when open; `blockedSay` is clear when sealed.
+1. Empty (or correctly sealed) backdrop has a **clear left→right walk band**.  
+2. `room.json` has `manH_scene`, floor line, per-slot draw + hit + walkX.  
+3. Props are separate keyed PNGs; nothing takeable is baked into the plate.  
+4. Live clean + debug screenshots exist under `qa/`.  
+5. Player scale and prop contact surfaces look intentional.  
+6. **If a doorway is gameplay-gated:** sealed + open plates, `backdrops` wired to the flag, verify screenshots.  
+7. Walk-to / use exit works when open; blocked copy matches sealed art.  
+8. Objectives point to the next clear action.
 
 ---
 
-## 15. Suggested authoring commands (this repo)
+## 16. Suggested authoring flow
 
 ```bash
-# After editing placements / props — regenerate composite (maintain a small script or notebook)
-python3 tools/compose_room.py   # if present; else ad-hoc PIL as used in session
-
-# Sealed doorway from open plate (concept — adjust crop box per room)
-# 1) crop right doorway from backdrop_open.jpg
-# 2) Imagine-edit that crop only (closed door; no portholes/whales)
-# 3) paste onto copy of open → backdrop_sealed.jpg
-
-# Play
+# Serve
 python3 -m http.server 8000
-# Open http://127.0.0.1:8000/?debug=1
-# Open http://127.0.0.1:8000/?skiptitle=1&room=pump_gallery
-# Open http://127.0.0.1:8000/?debug=1&only=desk&hidebg=1&hideplayer=1
+
+# Play a content root
+# http://127.0.0.1:8000/?content=game_tavern&v=60
+# http://127.0.0.1:8000/?content=game_tavern&debug=1
+
+# Sealed doorway (concept)
+# 1) save backdrop_open.jpg
+# 2) crop doorway strip (wide enough for open leaf)
+# 3) edit crop closed → paste onto copy of open → backdrop_sealed.jpg
+# 4) verify pixel diff outside strip ≈ 0
 ```
 
-Browser automation screenshots (agent-browser or similar) are valid QA artifacts—keep them under `game_data/rooms/<roomId>/qa/` when debugging a pass (`verify_sealed.png`, `verify_open.png`, etc.).
+Browser automation screenshots are valid QA artifacts — keep them under `{contentRoot}/rooms/<roomId>/qa/`.
 
 ---
 
 ## Summary
 
-**Backdrop (authority plate) → understand → RGB slots → centroids → JSON → keyed props → composite with man → fix scale → debug boxes in game → sealed/open doorway plates via crop-edit-paste if gated.**
+**Empty architecture plate → clear horizontal walk band → lock style → props on green after backdrop → man-relative scale → live browser nudge loop → sealed/open plates via crop-edit-paste if gated.**
 
-Quality is not “assets exist.” Quality is **shared floor, man-relative scale, tight boxes, state art that matches flags, and visual proofs (composite + live sealed/open) that agree.**
+Quality is not “assets exist.” Quality is **shared floor, open aisle, man-relative scale, tight boxes, state art that matches flags, and visual proofs for every room.**

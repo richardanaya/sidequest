@@ -1,0 +1,45 @@
+{
+  "id": "tavernkeep",
+  "name": "Gareth",
+  "version": 1,
+  "description": "Young tavernkeep in blue tunic \u2014 earnest hero with a night shift.",
+  "art": {
+    "idle": "idle.png",
+    "idleSource": "idle.jpg",
+    "walk": "walk.mp4",
+    "facing": "right",
+    "chromaKey": "#00FF00"
+  },
+  "animations": {
+    "idle": {
+      "asset": "idle.png",
+      "type": "image",
+      "loop": true
+    },
+    "walk": {
+      "asset": "walk.mp4",
+      "type": "video",
+      "loop": true
+    }
+  },
+  "interaction": {
+    "reach": 70,
+    "footAnchor": [
+      0.5,
+      1
+    ]
+  },
+  "scale": {
+    "defaultHeightScene": 148
+  },
+  "motion": {
+    "maxSpeed": 88,
+    "accel": 480,
+    "decel": 800,
+    "stopEpsilon": 2.5,
+    "playbackRate": 0.72,
+    "blendIn": 14.0,
+    "blendOut": 12.0,
+    "walkSpeedThreshold": 10
+  }
+}

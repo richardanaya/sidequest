@@ -1,0 +1,112 @@
+{
+  "id": "courtyard",
+  "name": "Courtyard",
+  "version": 2,
+  "description": "Cobblestone yard with clear front path. Well and crates sit back against the fence.",
+  "character": "tavernkeep",
+  "backdrop": "backdrop.jpg",
+  "script": "script.json",
+  "walkBounds": { "min": 90, "max": 820 },
+  "imageSize": [1280, 720],
+  "sceneSize": [960, 428],
+  "floorY_image": 640,
+  "floorY_scene": 378,
+  "manH_scene": 140,
+  "spawn": { "xFactor": 0.22, "facing": 1 },
+  "spawns": {
+    "from_west": { "xFactor": 0.22, "facing": 1 },
+    "from_east": { "xFactor": 0.72, "facing": -1 }
+  },
+  "exits": {
+    "west": {
+      "room": "common_room",
+      "spawn": "from_courtyard",
+      "walkX": 130,
+      "hotspot": "tavern_door"
+    }
+  },
+  "slots": {
+    "tavern_door": {
+      "id": "tavern_door",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 40,
+      "sceneDrawY": 90,
+      "sceneDrawW": 120,
+      "sceneDrawH": 240,
+      "walkX": 130,
+      "hx": 50,
+      "hy": 100,
+      "hw": 110,
+      "hh": 230,
+      "prop": null
+    },
+    "well": {
+      "id": "well",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 300,
+      "sceneDrawY": 120,
+      "sceneDrawW": 160,
+      "sceneDrawH": 180,
+      "walkX": 380,
+      "hx": 310,
+      "hy": 130,
+      "hw": 150,
+      "hh": 170,
+      "prop": null
+    },
+    "flour_prop": {
+      "id": "flour_prop",
+      "kind": "floor",
+      "noSprite": false,
+      "sceneDrawX": 578,
+      "sceneDrawY": 278,
+      "sceneDrawW": 38,
+      "sceneDrawH": 42,
+      "walkX": 600,
+      "hx": 560,
+      "hy": 255,
+      "hw": 70,
+      "hh": 70,
+      "prop": "props/flour.png"
+    },
+    "crates": {
+      "id": "crates",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 540,
+      "sceneDrawY": 200,
+      "sceneDrawW": 160,
+      "sceneDrawH": 120,
+      "walkX": 620,
+      "hx": 550,
+      "hy": 210,
+      "hw": 150,
+      "hh": 110,
+      "prop": null
+    },
+    "gate": {
+      "id": "gate",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 740,
+      "sceneDrawY": 70,
+      "sceneDrawW": 180,
+      "sceneDrawH": 260,
+      "walkX": 800,
+      "hx": 750,
+      "hy": 80,
+      "hw": 160,
+      "hh": 250,
+      "prop": null
+    }
+  },
+  "hotspotMeta": {
+    "tavern_door": { "name": "tavern door", "noSprite": true },
+    "well": { "name": "well", "noSprite": true },
+    "flour_prop": { "name": "sack of flour" },
+    "crates": { "name": "crates", "noSprite": true },
+    "gate": { "name": "yard gate", "noSprite": true }
+  }
+}

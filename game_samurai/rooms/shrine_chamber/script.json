@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "entry": {
+    "text": "The shrine is still. The altar waits for a simple offering."
+  },
+  "flags": {
+    "offeredBlossom": false,
+    "tookBlade": false
+  },
+  "maximumScore": 25,
+  "objects": {
+    "altar": {
+      "name": "shrine altar",
+      "look": [
+        {
+          "when": { "flag": "tookBlade" },
+          "say": "The altar is quiet. The blade is yours."
+        },
+        {
+          "when": { "flag": "offeredBlossom" },
+          "say": "The blossom rests in the bowl. A sheathed katana lies on the step — ready for you."
+        },
+        { "say": "A low altar with a brass bowl. An offering would be proper. A blossom would do." }
+      ],
+      "talk": [{ "say": "Silence answers with silence." }],
+      "take": [
+        {
+          "when": { "flag": "tookBlade" },
+          "say": "Nothing more to take."
+        },
+        {
+          "when": { "flag": "offeredBlossom" },
+          "setFlag": "tookBlade",
+          "give": "katana",
+          "say": "You lift the master's blade. It is light — and heavy.",
+          "score": { "id": "katana", "points": 15, "reason": "Received the blade" }
+        },
+        { "say": "First offer a blossom. Then the shrine may answer." }
+      ],
+      "use": [
+        {
+          "when": { "flag": "tookBlade" },
+          "say": "You already have the blade."
+        },
+        {
+          "when": { "flag": "offeredBlossom" },
+          "setFlag": "tookBlade",
+          "give": "katana",
+          "say": "You lift the master's blade. It is light — and heavy.",
+          "score": { "id": "katana", "points": 15, "reason": "Received the blade" }
+        },
+        {
+          "when": { "not": { "hasItem": "blossom" } },
+          "say": "The bowl is empty. A cherry blossom would be a kind offering."
+        },
+        {
+          "setFlag": "offeredBlossom",
+          "remove": "blossom",
+          "say": "You place the blossom in the bowl. A hush — then a sheathed katana appears on the step.",
+          "score": { "id": "offer", "points": 10, "reason": "Offered the blossom" }
+        }
+      ],
+      "useWith": {
+        "blossom": [
+          {
+            "when": { "flag": "offeredBlossom" },
+            "say": "You already offered a blossom."
+          },
+          {
+            "setFlag": "offeredBlossom",
+            "remove": "blossom",
+            "say": "You place the blossom in the bowl. A hush — then a sheathed katana appears on the step.",
+            "score": { "id": "offer", "points": 10, "reason": "Offered the blossom" }
+          }
+        ],
+        "letter": [
+          {
+            "say": "The letter already told you: offer a blossom."
+          }
+        ],
+        "katana": [
+          {
+            "say": "The blade is yours to carry, not return."
+          }
+        ]
+      }
+    },
+    "door_west": {
+      "name": "door to the courtyard",
+      "look": [{ "say": "Back to the bamboo courtyard." }],
+      "use": [
+        {
+          "transition": { "room": "bamboo_courtyard", "spawn": "from_east" },
+          "say": "You step back into the mist."
+        }
+      ]
+    },
+    "door_east": {
+      "name": "door to the garden",
+      "look": [{ "say": "A door toward the garden gate." }],
+      "use": [
+        {
+          "transition": { "room": "torii_gate", "spawn": "from_west" },
+          "say": "You walk into the garden air."
+        }
+      ]
+    }
+  },
+  "objectives": [
+    { "when": { "flag": "tookBlade" }, "text": "Goal: open the garden gate" },
+    { "when": { "flag": "offeredBlossom" }, "text": "Goal: take the blade from the altar" },
+    { "when": { "hasItem": "blossom" }, "text": "Goal: offer the blossom on the altar" },
+    { "text": "Goal: make an offering at the altar" }
+  ]
+}

@@ -59,8 +59,14 @@ export class ScriptRuntime {
       }
       if (step.setObject) this.services.setObject(step.setObject, step.value ?? true);
       if (step.setPropState) this.services.setPropState?.(step.setPropState, step.state ?? step.value);
-      if (step.give) this.services.inventory.give(step.give);
-      if (step.remove) this.services.inventory.remove(step.remove);
+      if (step.give) {
+        const gives = Array.isArray(step.give) ? step.give : [step.give];
+        for (const id of gives) this.services.inventory.give(id);
+      }
+      if (step.remove) {
+        const removes = Array.isArray(step.remove) ? step.remove : [step.remove];
+        for (const id of removes) this.services.inventory.remove(id);
+      }
       if (step.score) {
         if (typeof step.score === "object") {
           this.services.awardScore?.(

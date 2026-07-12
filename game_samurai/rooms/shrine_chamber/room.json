@@ -1,0 +1,86 @@
+{
+  "id": "shrine_chamber",
+  "name": "Shrine Chamber",
+  "version": 1,
+  "description": "Quiet wooden shrine. Offer a blossom at the altar.",
+  "character": "ronin",
+  "backdrop": "backdrop.jpg",
+  "script": "script.json",
+  "walkBounds": { "min": 140, "max": 820 },
+  "imageSize": [1280, 720],
+  "sceneSize": [960, 428],
+  "floorY_image": 640,
+  "floorY_scene": 385,
+  "manH_scene": 140,
+  "spawn": { "xFactor": 0.5, "facing": 1 },
+  "spawns": {
+    "from_west": { "xFactor": 0.28, "facing": 1 },
+    "from_east": { "xFactor": 0.72, "facing": -1 }
+  },
+  "exits": {
+    "west": {
+      "room": "bamboo_courtyard",
+      "spawn": "from_east",
+      "walkX": 160,
+      "hotspot": "door_west"
+    },
+    "east": {
+      "room": "torii_gate",
+      "spawn": "from_west",
+      "walkX": 800,
+      "hotspot": "door_east"
+    }
+  },
+  "slots": {
+    "altar": {
+      "id": "altar",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 320,
+      "sceneDrawY": 160,
+      "sceneDrawW": 320,
+      "sceneDrawH": 200,
+      "walkX": 480,
+      "hx": 360,
+      "hy": 180,
+      "hw": 240,
+      "hh": 170,
+      "prop": null
+    },
+    "door_west": {
+      "id": "door_west",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 30,
+      "sceneDrawY": 90,
+      "sceneDrawW": 90,
+      "sceneDrawH": 270,
+      "walkX": 150,
+      "hx": 40,
+      "hy": 100,
+      "hw": 70,
+      "hh": 250,
+      "prop": null
+    },
+    "door_east": {
+      "id": "door_east",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 840,
+      "sceneDrawY": 90,
+      "sceneDrawW": 100,
+      "sceneDrawH": 270,
+      "walkX": 800,
+      "hx": 850,
+      "hy": 100,
+      "hw": 80,
+      "hh": 250,
+      "prop": null
+    }
+  },
+  "hotspotMeta": {
+    "altar": { "name": "shrine altar", "noSprite": true },
+    "door_west": { "name": "door to the courtyard", "noSprite": true },
+    "door_east": { "name": "door to the garden", "noSprite": true }
+  }
+}

@@ -2,6 +2,8 @@
   "name": "adventure-engine",
   "private": true,
   "type": "module",
+  "license": "MIT",
+  "author": "Richard Anaya",
   "scripts": {
     "test": "node --test"
   }

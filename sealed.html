@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sealed — A Point-and-Click Adventure</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Libre+Baskerville:ital@0;1&display=swap");
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      background: #05080c;
+      color: #d4c4a0;
+      font-family: "Libre Baskerville", Georgia, serif;
+      overflow: hidden;
+    }
+    #wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 12px;
+    }
+    #game {
+      display: block;
+      width: min(960px, 100%);
+      max-height: calc(100vh - 24px);
+      aspect-ratio: 16 / 9;
+      border-radius: 4px;
+      box-shadow:
+        0 0 0 2px #1a3040,
+        0 0 0 5px #8a7030,
+        0 0 0 7px #1a3040,
+        0 24px 60px rgba(0, 0, 0, 0.65);
+      background: #0a1018;
+      image-rendering: pixelated;
+      cursor: crosshair;
+    }
+    #status { display: none; }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <canvas id="game" width="960" height="540"></canvas>
+    <span id="status" hidden>Loading…</span>
+  </div>
+
+  <video id="walkVideo" muted playsinline loop preload="auto" crossorigin="anonymous" style="display:none"></video>
+
+  <script type="module">
+    import { AdventureEngine } from "./js/adventure-engine.js";
+
+    const engine = new AdventureEngine({
+      canvas: document.getElementById("game"),
+      walkVideo: document.getElementById("walkVideo"),
+      statusEl: document.getElementById("status"),
+      contentRoot: "game_sealed",
+      cacheBust: "?v=47",
+    });
+
+    window.adventure = engine;
+    engine.start().catch((err) => console.error(err));
+  </script>
+</body>
+</html>

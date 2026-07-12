@@ -1,23 +1,25 @@
 /**
- * Loads game_data/content.json registry + character/room packs (see CONTENT.md).
+ * Loads {contentRoot}/content.json registry + character/room packs.
  *
- * All game assets and definitions live under `game_data/`.
- * Engine code lives under `js/`. Paths in content.json are relative to game_data/.
+ * Each game is a folder of packs (e.g. game_sealed/, game_samurai/).
+ * Engine code lives under `js/`. Paths in content.json are relative to that content root.
  */
 import { ContentValidator } from "./content-validator.js";
+import { ChromaKey } from "./chroma.js";
 
 export class ContentLoader {
-  constructor({ cacheBust = "", root = "game_data" } = {}) {
+  constructor({ cacheBust = "", root = "game_sealed" } = {}) {
     this.cacheBust = cacheBust;
-    /** Root folder for all non-engine content (registry, packs, ui). */
-    this.root = String(root || "game_data").replace(/\/+$/, "") || "game_data";
+    /** Root folder for this game's content (registry, packs, ui, items). */
+    this.root = String(root || "game_sealed").replace(/\/+$/, "") || "game_sealed";
     this.registry = null;
     this.validator = new ContentValidator();
     this.cache = new Map();
+    this.chroma = new ChromaKey();
   }
 
   /**
-   * Resolve a path relative to game_data (or leave absolute / external URLs alone).
+   * Resolve a path relative to the content root (or leave absolute / external URLs alone).
    * @param {string} path
    */
   resolve(path) {
@@ -31,7 +33,6 @@ export class ContentLoader {
     ) {
       return path;
     }
-    // Already under root
     if (path === this.root || path.startsWith(`${this.root}/`)) return path;
     return `${this.root}/${path}`;
   }
@@ -73,6 +74,68 @@ export class ContentLoader {
   }
 
   /**
+   * Key green-screen stills for inventory icons (same chroma path as walk frames).
+   * Pre-keyed PNGs with alpha pass through mostly unchanged.
+   */
+  keyIconImage(img) {
+    if (!img) return null;
+    const w = img.naturalWidth || img.width;
+    const h = img.naturalHeight || img.height;
+    if (!w || !h) return img;
+    const keyed = this.chroma.keyAndCrop(img, w, h);
+    return keyed || img;
+  }
+
+  /**
+   * Load game-wide item catalog from content root.
+   * defaults.items → items.json with optional "icon": "items/foo.png" (green plate or keyed PNG).
+   */
+  async loadItemsCatalog() {
+    await this.loadRegistry();
+    const rel =
+      this.registry?.defaults?.items ||
+      this.registry?.items ||
+      "items.json";
+    try {
+      const data = await this.fetchJson(rel);
+      const raw =
+        data?.items && typeof data.items === "object" && !Array.isArray(data.items)
+          ? data.items
+          : data;
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+
+      const catalog = {};
+      await Promise.all(
+        Object.entries(raw).map(async ([id, def]) => {
+          if (!def || typeof def !== "object") {
+            catalog[id] = { name: String(id) };
+            return;
+          }
+          const entry = {
+            name: def.name || String(id).replace(/[_-]+/g, " "),
+            desc: def.desc || def.description || "",
+            icon: def.icon || null,
+            color: def.color || null,
+          };
+          if (entry.icon) {
+            try {
+              const img = await this.loadImage(entry.icon);
+              entry.iconImg = this.keyIconImage(img) || img;
+            } catch (err) {
+              console.warn(`Item icon failed: ${id} → ${entry.icon}`, err);
+            }
+          }
+          catalog[id] = entry;
+        })
+      );
+      return catalog;
+    } catch (err) {
+      console.warn("items catalog missing or invalid:", rel, err);
+      return {};
+    }
+  }
+
+  /**
    * @param {{ roomId?: string, characterId?: string }} opts
    */
   async loadGame(opts = {}) {
@@ -105,6 +168,7 @@ export class ContentLoader {
           await this.fetchJson(`${roomPath}/${roomPack.script}`)
         )
       : null;
+    // Room-local items file is rare; game catalog comes from loadItemsCatalog()
     const items = roomPack.items
       ? await this.fetchJson(`${roomPath}/${roomPack.items}`)
       : {};
@@ -115,7 +179,6 @@ export class ContentLoader {
 
     const walkUrl = this.packUrl(`${characterPath}/${walkRel}`);
 
-    // Collect unique backdrop files: default + state variants (game_data paths relative to pack)
     const backdropFiles = new Set([backdropRel]);
     for (const variant of roomPack.backdrops || []) {
       if (variant?.src) backdropFiles.add(variant.src);
@@ -161,8 +224,7 @@ export class ContentLoader {
   }
 
   /**
-   * Pack folder path relative to game_data (e.g. rooms/maintenance_hall).
-   * Registry entry.path may already include type/id.
+   * Pack folder path relative to content root (e.g. rooms/maintenance_hall).
    */
   resolvePackPath(type, id) {
     if (!/^[a-z0-9_-]+$/i.test(id || "")) {

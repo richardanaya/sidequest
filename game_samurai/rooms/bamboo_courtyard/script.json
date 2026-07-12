@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "entry": {
+    "text": "Mist softens the courtyard. A letter waits on the stone. Pink blossoms drift from the tree."
+  },
+  "flags": {
+    "tookLetter": false,
+    "tookBlossom": false
+  },
+  "maximumScore": 20,
+  "objects": {
+    "tree": {
+      "name": "cherry tree",
+      "look": [
+        {
+          "when": { "flag": "tookBlossom" },
+          "say": "The branches still bloom. You already hold a blossom."
+        },
+        { "say": "A cherry tree in soft flower. A perfect blossom hangs low enough to take." }
+      ],
+      "talk": [{ "say": "The leaves whisper. No words." }],
+      "take": [
+        {
+          "when": { "flag": "tookBlossom" },
+          "say": "You already took a blossom."
+        },
+        {
+          "setFlag": "tookBlossom",
+          "give": "blossom",
+          "say": "You pluck a single cherry blossom. Soft as breath.",
+          "score": { "id": "blossom", "points": 5, "reason": "Took a blossom" }
+        }
+      ],
+      "use": [
+        {
+          "when": { "flag": "tookBlossom" },
+          "say": "You already took a blossom."
+        },
+        {
+          "setFlag": "tookBlossom",
+          "give": "blossom",
+          "say": "You pluck a single cherry blossom. Soft as breath.",
+          "score": { "id": "blossom", "points": 5, "reason": "Took a blossom" }
+        }
+      ]
+    },
+    "blossom": {
+      "name": "fallen blossom",
+      "look": [
+        {
+          "when": { "flag": "tookBlossom" },
+          "say": "Petals on the path. You already have one."
+        },
+        { "say": "A perfect blossom, still fresh." }
+      ],
+      "take": [
+        {
+          "when": { "flag": "tookBlossom" },
+          "say": "You already have a blossom."
+        },
+        {
+          "setFlag": "tookBlossom",
+          "give": "blossom",
+          "say": "You take the blossom carefully.",
+          "score": { "id": "blossom", "points": 5, "reason": "Took a blossom" }
+        }
+      ],
+      "use": [
+        {
+          "when": { "flag": "tookBlossom" },
+          "say": "You already have a blossom."
+        },
+        {
+          "setFlag": "tookBlossom",
+          "give": "blossom",
+          "say": "You take the blossom carefully.",
+          "score": { "id": "blossom", "points": 5, "reason": "Took a blossom" }
+        }
+      ]
+    },
+    "letter": {
+      "name": "sealed letter",
+      "look": [
+        {
+          "when": { "flag": "tookLetter" },
+          "say": "You already carry the letter."
+        },
+        { "say": "A letter sealed in red. It rests on the flat stone." }
+      ],
+      "take": [
+        {
+          "when": { "flag": "tookLetter" },
+          "say": "You already have it."
+        },
+        {
+          "setFlag": "tookLetter",
+          "give": "letter",
+          "say": "You open the seal. \"Bring a blossom to the shrine. The blade will answer.\"",
+          "score": { "id": "letter", "points": 5, "reason": "Read the letter" }
+        }
+      ],
+      "use": [
+        {
+          "when": { "flag": "tookLetter" },
+          "say": "\"Bring a blossom to the shrine. The blade will answer.\""
+        },
+        {
+          "setFlag": "tookLetter",
+          "give": "letter",
+          "say": "You open the seal. \"Bring a blossom to the shrine. The blade will answer.\"",
+          "score": { "id": "letter", "points": 5, "reason": "Read the letter" }
+        }
+      ]
+    },
+    "path_east": {
+      "name": "path to the shrine",
+      "look": [{ "say": "The path slips between the bamboo, toward the shrine." }],
+      "talk": [{ "say": "…" }],
+      "take": [{ "say": "It's a path." }],
+      "use": [
+        {
+          "say": "You follow the stones toward the shrine.",
+          "transition": { "room": "shrine_chamber", "spawn": "from_west" }
+        }
+      ]
+    }
+  },
+  "objectives": [
+    {
+      "when": { "all": [{ "flag": "tookBlossom" }, { "flag": "tookLetter" }] },
+      "text": "Goal: follow the path to the shrine"
+    },
+    { "when": { "flag": "tookBlossom" }, "text": "Goal: read the letter, then find the shrine" },
+    { "when": { "flag": "tookLetter" }, "text": "Goal: take a blossom, then find the shrine" },
+    { "text": "Goal: take a blossom and read the letter" }
+  ]
+}

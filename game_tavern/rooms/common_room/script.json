@@ -1,0 +1,431 @@
+{
+  "version": 1,
+  "entry": {
+    "text": "The Crown & Cup is quiet before the rush. A royal notice hangs by the shelves. Tonight, the King dines here."
+  },
+  "flags": {
+    "readNotice": false,
+    "hasKey": false,
+    "cellarOpen": false,
+    "tookTankard": false,
+    "bakedLoaf": false,
+    "servedAle": false,
+    "servedLoaf": false,
+    "feastReady": false
+  },
+  "maximumScore": 40,
+  "objects": {
+    "notice": {
+      "name": "royal notice",
+      "look": [
+        {
+          "when": { "flag": "readNotice" },
+          "say": "\"Serve ROYAL ALE and a GOLDEN LOAF upon the high table.\" — still the plan."
+        },
+        {
+          "setFlag": "readNotice",
+          "give": "notice",
+          "say": "A sealed notice: \"His Majesty dines tonight. Serve ROYAL ALE and a GOLDEN LOAF upon the high table.\"",
+          "score": { "id": "notice", "points": 5, "reason": "Read the royal notice" }
+        }
+      ],
+      "take": [
+        {
+          "when": { "flag": "readNotice" },
+          "say": "You already know what it says. Ale and a golden loaf."
+        },
+        {
+          "setFlag": "readNotice",
+          "give": "notice",
+          "say": "You take the notice. \"Serve ROYAL ALE and a GOLDEN LOAF upon the high table.\"",
+          "score": { "id": "notice", "points": 5, "reason": "Read the royal notice" }
+        }
+      ],
+      "use": [
+        {
+          "when": { "flag": "readNotice" },
+          "say": "Royal ale from the cellar. Golden loaf from the hearth. Set them on the bar."
+        },
+        {
+          "setFlag": "readNotice",
+          "give": "notice",
+          "say": "\"Serve ROYAL ALE and a GOLDEN LOAF upon the high table.\"",
+          "score": { "id": "notice", "points": 5, "reason": "Read the royal notice" }
+        }
+      ]
+    },
+    "mantel": {
+      "name": "hearth mantel",
+      "look": [
+        {
+          "when": { "flag": "hasKey" },
+          "say": "The mantel is bare now. The iron key is in your pocket."
+        },
+        { "say": "An iron key rests on the stone mantel. It looks like a cellar key." }
+      ],
+      "take": [
+        {
+          "when": { "flag": "hasKey" },
+          "say": "You already took the key."
+        },
+        {
+          "setFlag": "hasKey",
+          "give": "cellar_key",
+          "setObject": "mantel.taken",
+          "say": "You pocket the iron cellar key.",
+          "score": { "id": "key", "points": 5, "reason": "Took the cellar key" }
+        }
+      ],
+      "use": [
+        {
+          "when": { "flag": "hasKey" },
+          "say": "Nothing else on the mantel."
+        },
+        {
+          "setFlag": "hasKey",
+          "give": "cellar_key",
+          "setObject": "mantel.taken",
+          "say": "You pocket the iron cellar key.",
+          "score": { "id": "key", "points": 5, "reason": "Took the cellar key" }
+        }
+      ]
+    },
+    "tankard_prop": {
+      "name": "tankard",
+      "look": [
+        {
+          "when": { "flag": "tookTankard" },
+          "say": "The bar is empty where the tankard sat."
+        },
+        {
+          "when": { "hasItem": "royal_ale" },
+          "say": "You already filled a tankard with royal ale."
+        },
+        { "say": "A clean empty tankard on the bar. Perfect for royal ale." }
+      ],
+      "take": [
+        {
+          "when": { "flag": "tookTankard" },
+          "say": "You already have the tankard — or what it became."
+        },
+        {
+          "when": { "hasItem": "royal_ale" },
+          "say": "Your hands are full of frothy ale already."
+        },
+        {
+          "setFlag": "tookTankard",
+          "give": "tankard",
+          "setObject": "tankard_prop.taken",
+          "say": "You take the empty tankard.",
+          "score": { "id": "tankard", "points": 5, "reason": "Took the tankard" }
+        }
+      ],
+      "use": [
+        {
+          "when": { "flag": "tookTankard" },
+          "say": "Already taken."
+        },
+        {
+          "setFlag": "tookTankard",
+          "give": "tankard",
+          "setObject": "tankard_prop.taken",
+          "say": "You take the empty tankard.",
+          "score": { "id": "tankard", "points": 5, "reason": "Took the tankard" }
+        }
+      ]
+    },
+    "oven": {
+      "name": "hearth oven",
+      "look": [
+        {
+          "when": { "flag": "bakedLoaf" },
+          "say": "The oven still glows. The golden loaf is done."
+        },
+        {
+          "when": { "hasItem": "flour" },
+          "say": "A hot stone oven. Your sack of flour would bake well here."
+        },
+        { "say": "A stone hearth oven, coals glowing. Good for a golden loaf — if you had flour." }
+      ],
+      "use": [
+        {
+          "when": { "flag": "bakedLoaf" },
+          "say": "The loaf is already baked."
+        },
+        {
+          "when": { "not": { "hasItem": "flour" } },
+          "say": "Nothing to bake. You need flour — try the courtyard stores."
+        },
+        {
+          "setFlag": "bakedLoaf",
+          "remove": "flour",
+          "give": "loaf",
+          "say": "You work the dough into the oven. Minutes later — a golden loaf, crust singing.",
+          "score": { "id": "loaf", "points": 15, "reason": "Baked the golden loaf" }
+        }
+      ],
+      "useWith": {
+        "flour": [
+          {
+            "when": { "flag": "bakedLoaf" },
+            "say": "Already baked."
+          },
+          {
+            "setFlag": "bakedLoaf",
+            "remove": "flour",
+            "give": "loaf",
+            "say": "You work the dough into the oven. Minutes later — a golden loaf, crust singing.",
+            "score": { "id": "loaf", "points": 15, "reason": "Baked the golden loaf" }
+          }
+        ],
+        "tankard": [{ "say": "The oven is for bread, not ale." }],
+        "royal_ale": [{ "say": "Warm ale is a crime. The bar is the place." }],
+        "loaf": [{ "say": "It's already perfect." }],
+        "cellar_key": [{ "say": "Keys don't bake." }],
+        "notice": [{ "say": "The notice already told you: bake a golden loaf." }]
+      }
+    },
+    "kings_table": {
+      "name": "serving bar",
+      "look": [
+        {
+          "when": { "flag": "feastReady" },
+          "say": "Ale and loaf wait for His Majesty. The Crown & Cup is ready."
+        },
+        {
+          "when": { "all": [{ "flag": "servedAle" }, { "flag": "servedLoaf" }] },
+          "say": "The feast is set."
+        },
+        {
+          "when": { "flag": "servedAle" },
+          "say": "Royal ale sits on the bar. Still needs the golden loaf."
+        },
+        {
+          "when": { "flag": "servedLoaf" },
+          "say": "The golden loaf sits on the bar. Still needs royal ale."
+        },
+        { "say": "The serving bar — where the King's feast must be laid: royal ale and a golden loaf." }
+      ],
+      "use": [
+        {
+          "when": { "flag": "feastReady" },
+          "say": "Everything is set. The King will be pleased."
+        },
+        {
+          "when": { "all": [{ "hasItem": "royal_ale" }, { "hasItem": "loaf" }] },
+          "setFlags": { "servedAle": true, "servedLoaf": true, "feastReady": true },
+          "remove": ["royal_ale", "loaf"],
+          "say": "You set the frothy ale and the golden loaf upon the bar. Perfect.",
+          "score": { "id": "feast", "points": 25, "reason": "Set the King's feast" },
+          "win": "A horn sounds outside. The King arrives to ale and fresh bread. The Crown & Cup is saved — and so is your job. Well done, Gareth!"
+        },
+        {
+          "when": { "hasItem": "royal_ale" },
+          "setFlag": "servedAle",
+          "remove": "royal_ale",
+          "say": "You set the royal ale on the bar. Now the golden loaf.",
+          "score": { "id": "serve_ale", "points": 10, "reason": "Served the royal ale" }
+        },
+        {
+          "when": { "hasItem": "loaf" },
+          "setFlag": "servedLoaf",
+          "remove": "loaf",
+          "say": "You set the golden loaf on the bar. Now the royal ale.",
+          "score": { "id": "serve_loaf", "points": 10, "reason": "Served the golden loaf" }
+        },
+        {
+          "when": { "all": [{ "flag": "servedAle" }, { "hasItem": "loaf" }] },
+          "setFlags": { "servedLoaf": true, "feastReady": true },
+          "remove": "loaf",
+          "say": "Loaf joins the ale. The feast is complete!",
+          "score": { "id": "feast", "points": 25, "reason": "Set the King's feast" },
+          "win": "A horn sounds outside. The King arrives to ale and fresh bread. The Crown & Cup is saved — and so is your job. Well done, Gareth!"
+        },
+        {
+          "when": { "all": [{ "flag": "servedLoaf" }, { "hasItem": "royal_ale" }] },
+          "setFlags": { "servedAle": true, "feastReady": true },
+          "remove": "royal_ale",
+          "say": "Ale joins the loaf. The feast is complete!",
+          "score": { "id": "feast", "points": 25, "reason": "Set the King's feast" },
+          "win": "A horn sounds outside. The King arrives to ale and fresh bread. The Crown & Cup is saved — and so is your job. Well done, Gareth!"
+        },
+        { "say": "The bar waits for royal ale and a golden loaf. Check the notice if you've forgotten." }
+      ],
+      "useWith": {
+        "royal_ale": [
+          {
+            "when": { "flag": "servedAle" },
+            "say": "Ale is already set."
+          },
+          {
+            "when": { "flag": "servedLoaf" },
+            "setFlags": { "servedAle": true, "feastReady": true },
+            "remove": "royal_ale",
+            "say": "Ale joins the loaf. The feast is complete!",
+            "score": { "id": "feast", "points": 25, "reason": "Set the King's feast" },
+            "win": "A horn sounds outside. The King arrives to ale and fresh bread. The Crown & Cup is saved — and so is your job. Well done, Gareth!"
+          },
+          {
+            "setFlag": "servedAle",
+            "remove": "royal_ale",
+            "say": "You set the royal ale on the bar. Now the golden loaf.",
+            "score": { "id": "serve_ale", "points": 10, "reason": "Served the royal ale" }
+          }
+        ],
+        "loaf": [
+          {
+            "when": { "flag": "servedLoaf" },
+            "say": "The loaf is already set."
+          },
+          {
+            "when": { "flag": "servedAle" },
+            "setFlags": { "servedLoaf": true, "feastReady": true },
+            "remove": "loaf",
+            "say": "Loaf joins the ale. The feast is complete!",
+            "score": { "id": "feast", "points": 25, "reason": "Set the King's feast" },
+            "win": "A horn sounds outside. The King arrives to ale and fresh bread. The Crown & Cup is saved — and so is your job. Well done, Gareth!"
+          },
+          {
+            "setFlag": "servedLoaf",
+            "remove": "loaf",
+            "say": "You set the golden loaf on the bar. Now the royal ale.",
+            "score": { "id": "serve_loaf", "points": 10, "reason": "Served the golden loaf" }
+          }
+        ],
+        "tankard": [{ "say": "Fill it with royal ale from the cellar first." }],
+        "flour": [{ "say": "Bake it in the oven first." }],
+        "cellar_key": [{ "say": "Wrong place for a key." }],
+        "notice": [{ "say": "You've read it. Now do what it says." }]
+      }
+    },
+    "bar": {
+      "name": "bar",
+      "look": [
+        {
+          "when": { "flag": "tookTankard" },
+          "say": "The serving bar. Empty tankard gone — ready for the feast."
+        },
+        { "say": "A solid oak bar. An empty tankard waits. This is where the King will be served." }
+      ],
+      "use": [{ "say": "Set the feast on the serving bar when you have ale and loaf." }],
+      "take": [{ "say": "The bar stays put." }]
+    },
+    "cellar_door": {
+      "name": "cellar door",
+      "look": [
+        {
+          "when": { "flag": "cellarOpen" },
+          "say": "The cellar door stands open. Cool air rises from the stairs."
+        },
+        {
+          "when": { "hasItem": "cellar_key" },
+          "say": "A locked cellar door. You have the key."
+        },
+        { "say": "A heavy wooden door to the cellar — shut tight and locked. The key was on the hearth mantel." }
+      ],
+      "use": [
+        {
+          "when": { "flag": "cellarOpen" },
+          "transition": { "room": "cellar", "spawn": "from_east" },
+          "say": "You head down into the cool dark."
+        },
+        {
+          "when": { "not": { "hasItem": "cellar_key" } },
+          "say": "Locked. Try the hearth mantel for a key."
+        },
+        {
+          "setFlags": { "cellarOpen": true },
+          "remove": "cellar_key",
+          "say": "The key turns. The cellar door swings open.",
+          "score": { "id": "cellar", "points": 10, "reason": "Opened the cellar" }
+        }
+      ],
+      "useWith": {
+        "cellar_key": [
+          {
+            "when": { "flag": "cellarOpen" },
+            "say": "Already open."
+          },
+          {
+            "setFlags": { "cellarOpen": true },
+            "remove": "cellar_key",
+            "say": "The key turns. The cellar door swings open.",
+            "score": { "id": "cellar", "points": 10, "reason": "Opened the cellar" }
+          }
+        ],
+        "tankard": [{ "say": "The door wants a key, not a mug." }],
+        "notice": [{ "say": "The notice wants ale from beyond this door." }]
+      }
+    },
+    "courtyard_door": {
+      "name": "courtyard door",
+      "look": [{ "say": "Daylight and cobbles. The courtyard stores are that way." }],
+      "use": [
+        {
+          "transition": { "room": "courtyard", "spawn": "from_west" },
+          "say": "You step out into the yard."
+        }
+      ]
+    }
+  },
+  "objectives": [
+    { "when": { "flag": "feastReady" }, "text": "The feast is ready!" },
+    {
+      "when": { "all": [{ "flag": "servedAle" }, { "hasItem": "loaf" }] },
+      "text": "Goal: set the golden loaf on the bar"
+    },
+    {
+      "when": { "all": [{ "flag": "servedLoaf" }, { "hasItem": "royal_ale" }] },
+      "text": "Goal: set the royal ale on the bar"
+    },
+    {
+      "when": { "all": [{ "hasItem": "royal_ale" }, { "hasItem": "loaf" }] },
+      "text": "Goal: set ale and loaf on the serving bar"
+    },
+    {
+      "when": { "all": [{ "hasItem": "royal_ale" }, { "flag": "bakedLoaf" }] },
+      "text": "Goal: set the feast on the serving bar"
+    },
+    {
+      "when": { "all": [{ "hasItem": "royal_ale" }, { "hasItem": "flour" }] },
+      "text": "Goal: bake the flour in the hearth oven"
+    },
+    {
+      "when": { "hasItem": "royal_ale" },
+      "text": "Goal: get flour from the courtyard, then bake a loaf"
+    },
+    {
+      "when": { "all": [{ "hasItem": "loaf" }, { "hasItem": "tankard" }] },
+      "text": "Goal: fill the tankard at the crowned cask in the cellar"
+    },
+    {
+      "when": { "hasItem": "loaf" },
+      "text": "Goal: fill a tankard with royal ale from the cellar"
+    },
+    {
+      "when": { "all": [{ "hasItem": "flour" }, { "hasItem": "tankard" }] },
+      "text": "Goal: bake flour in the oven; fill tankard in the cellar"
+    },
+    {
+      "when": { "hasItem": "flour" },
+      "text": "Goal: bake the flour in the hearth oven"
+    },
+    {
+      "when": { "all": [{ "flag": "cellarOpen" }, { "hasItem": "tankard" }] },
+      "text": "Goal: fill the tankard at the crowned cask below"
+    },
+    {
+      "when": { "flag": "cellarOpen" },
+      "text": "Goal: take the tankard, fill it at the crowned cask"
+    },
+    {
+      "when": { "hasItem": "cellar_key" },
+      "text": "Goal: unlock the cellar door"
+    },
+    {
+      "when": { "flag": "readNotice" },
+      "text": "Goal: get the cellar key from the mantel"
+    },
+    { "text": "Goal: read the royal notice by the shelves" }
+  ]
+}

@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sealed — A Point-and-Click Adventure</title>
+  <title>The Crown &amp; Cup</title>
   <style>
     @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Libre+Baskerville:ital@0;1&display=swap");
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       height: 100%;
-      background: #05080c;
+      background: #0a0c0a;
       color: #d4c4a0;
       font-family: "Libre Baskerville", Georgia, serif;
       overflow: hidden;
@@ -29,11 +29,11 @@
       aspect-ratio: 16 / 9;
       border-radius: 4px;
       box-shadow:
-        0 0 0 2px #1a3040,
-        0 0 0 5px #8a7030,
-        0 0 0 7px #1a3040,
+        0 0 0 2px #1a2820,
+        0 0 0 5px #6a6040,
+        0 0 0 7px #1a2820,
         0 24px 60px rgba(0, 0, 0, 0.65);
-      background: #0a1018;
+      background: #0a1010;
       image-rendering: pixelated;
       cursor: crosshair;
     }
@@ -51,21 +51,20 @@
   <script type="module">
     import { AdventureEngine } from "./js/adventure-engine.js";
 
+    // Which game: ?content=game_tavern | game_samurai | game_sealed
+    const params = new URLSearchParams(location.search);
+    const contentRoot = params.get("content") || params.get("game") || "game_tavern";
+
     const engine = new AdventureEngine({
       canvas: document.getElementById("game"),
       walkVideo: document.getElementById("walkVideo"),
       statusEl: document.getElementById("status"),
-      cacheBust: "?v=35",
-      // content root defaults to game_data/
-      // room / character also from URL: ?room=maintenance_hall&character=protagonist
+      contentRoot,
+      cacheBust: "?v=50",
     });
 
-    // Expose for console debugging
     window.adventure = engine;
-
-    engine.start().catch((err) => {
-      console.error(err);
-    });
+    engine.start().catch((err) => console.error(err));
   </script>
 </body>
 </html>

@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "title": "The Crown & Cup",
+  "subtitle": "A Tavern Adventure",
+  "tagline": "The King dines tonight. Ale, bread, and a clear head.",
+  "defaults": {
+    "room": "common_room",
+    "character": "tavernkeep",
+    "titleBackground": "ui/title.jpg",
+    "items": "items.json"
+  },
+  "characters": {
+    "tavernkeep": {
+      "path": "characters/tavernkeep",
+      "name": "Gareth"
+    }
+  },
+  "rooms": {
+    "common_room": {
+      "path": "rooms/common_room",
+      "name": "Common Room",
+      "character": "tavernkeep"
+    },
+    "cellar": {
+      "path": "rooms/cellar",
+      "name": "Cellar",
+      "character": "tavernkeep"
+    },
+    "courtyard": {
+      "path": "rooms/courtyard",
+      "name": "Courtyard",
+      "character": "tavernkeep"
+    }
+  }
+}

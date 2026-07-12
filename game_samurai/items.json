@@ -1,0 +1,17 @@
+{
+  "letter": {
+    "name": "folded letter",
+    "desc": "\"Bring a blossom to the shrine. The blade will answer.\"",
+    "icon": "items/letter.png"
+  },
+  "blossom": {
+    "name": "cherry blossom",
+    "desc": "A single soft bloom. Meant for the shrine.",
+    "icon": "items/blossom.png"
+  },
+  "katana": {
+    "name": "master's blade",
+    "desc": "Sheathed katana. Light in the hand. Heavy with purpose.",
+    "icon": "items/katana.png"
+  }
+}

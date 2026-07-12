@@ -1,0 +1,29 @@
+{
+  "id": "ronin",
+  "name": "Ronin",
+  "version": 1,
+  "description": "Young samurai, indigo kimono, calm side view.",
+  "art": {
+    "idle": "idle.png",
+    "idleSource": "idle.jpg",
+    "walk": "walk.mp4",
+    "facing": "right",
+    "chromaKey": "#00FF00"
+  },
+  "animations": {
+    "idle": { "asset": "idle.png", "type": "image", "loop": true },
+    "walk": { "asset": "walk.mp4", "type": "video", "loop": true }
+  },
+  "interaction": { "reach": 70, "footAnchor": [0.5, 1] },
+  "scale": { "defaultHeightScene": 148 },
+  "motion": {
+    "maxSpeed": 100,
+    "accel": 480,
+    "decel": 800,
+    "stopEpsilon": 2.5,
+    "playbackRate": 0.85,
+    "blendIn": 14.0,
+    "blendOut": 12.0,
+    "walkSpeedThreshold": 10
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "id": "bamboo_courtyard",
+  "name": "Bamboo Courtyard",
+  "version": 1,
+  "description": "Misty dojo courtyard. Cherry tree, stepping stones, letter on a flat stone.",
+  "character": "ronin",
+  "backdrop": "backdrop.jpg",
+  "script": "script.json",
+  "walkBounds": { "min": 90, "max": 870 },
+  "imageSize": [1280, 720],
+  "sceneSize": [960, 428],
+  "floorY_image": 620,
+  "floorY_scene": 368,
+  "manH_scene": 148,
+  "spawn": { "xFactor": 0.32, "facing": 1 },
+  "spawns": {
+    "from_west": { "xFactor": 0.22, "facing": 1 },
+    "from_east": { "xFactor": 0.78, "facing": -1 }
+  },
+  "exits": {
+    "east": {
+      "room": "shrine_chamber",
+      "spawn": "from_west",
+      "walkX": 850,
+      "hotspot": "path_east"
+    }
+  },
+  "slots": {
+    "tree": {
+      "id": "tree",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 20,
+      "sceneDrawY": 20,
+      "sceneDrawW": 260,
+      "sceneDrawH": 320,
+      "walkX": 180,
+      "hx": 40,
+      "hy": 60,
+      "hw": 200,
+      "hh": 260,
+      "prop": null
+    },
+    "blossom": {
+      "id": "blossom",
+      "kind": "floor",
+      "noSprite": false,
+      "sceneDrawX": 155,
+      "sceneDrawY": 318,
+      "sceneDrawW": 36,
+      "sceneDrawH": 32,
+      "walkX": 180,
+      "hx": 158,
+      "hy": 322,
+      "hw": 30,
+      "hh": 26,
+      "prop": "props/blossom.png"
+    },
+    "letter": {
+      "id": "letter",
+      "kind": "floor",
+      "noSprite": true,
+      "sceneDrawX": 680,
+      "sceneDrawY": 300,
+      "sceneDrawW": 70,
+      "sceneDrawH": 50,
+      "walkX": 710,
+      "hx": 690,
+      "hy": 305,
+      "hw": 55,
+      "hh": 40,
+      "prop": null
+    },
+    "path_east": {
+      "id": "path_east",
+      "kind": "wall",
+      "noSprite": true,
+      "sceneDrawX": 780,
+      "sceneDrawY": 140,
+      "sceneDrawW": 160,
+      "sceneDrawH": 220,
+      "walkX": 850,
+      "hx": 800,
+      "hy": 150,
+      "hw": 120,
+      "hh": 200,
+      "prop": null
+    }
+  },
+  "hotspotMeta": {
+    "tree": { "name": "cherry tree", "noSprite": true },
+    "blossom": { "name": "fallen blossom" },
+    "letter": { "name": "sealed letter", "noSprite": true },
+    "path_east": { "name": "path to the shrine", "noSprite": true }
+  }
+}

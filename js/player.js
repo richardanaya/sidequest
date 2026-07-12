@@ -24,6 +24,11 @@ export class Player {
     this.walkReady = false;
     this.animations = {};
     this.requestedAnimation = null;
+    /**
+     * First walk-frame content bounds (video space). Fixed scale/align for the cycle.
+     * { bx, by, bw, bh, fw, fh }
+     */
+    this.walkCalib = null;
 
     this.motion = {
       maxSpeed: 118,
@@ -43,6 +48,12 @@ export class Player {
     this.idleCanvas.height = img.naturalHeight;
     this.idleCanvas.getContext("2d").drawImage(img, 0, 0);
     this._syncSize();
+  }
+
+  /** Call when walk video source changes (new character / room load). */
+  resetWalkCalibration() {
+    this.walkCalib = null;
+    this.walkFrameCanvas = null;
   }
 
   setHeight(h) {
@@ -219,25 +230,71 @@ export class Player {
     }
   }
 
-  /** Capture / update last walk chroma frame when blending. */
+  /**
+   * Capture a full keyed walk frame (no content crop — limbs stay intact).
+   * First frame: measure content bbox to calibrate scale + foot anchor.
+   */
   captureWalkFrame() {
     if (this.walkBlend <= 0.02 || !this.walkVideo || this.walkVideo.readyState < 2) {
       return this.walkFrameCanvas;
     }
-    const frame = this.chroma.frameFromVideo(this.walkVideo);
-    if (!frame) return this.walkFrameCanvas;
+    const vid = this.walkVideo;
+    const sw = vid.videoWidth || 544;
+    const sh = vid.videoHeight || 544;
+    // Full frame key only — never tight-crop (that cuts limbs and changes aspect)
+    this.chroma.apply(vid, this.chroma.work, this.chroma.workCtx, sw, sh);
+    const src = this.chroma.work;
+
     if (
       !this.walkFrameCanvas ||
-      this.walkFrameCanvas.width !== frame.width ||
-      this.walkFrameCanvas.height !== frame.height
+      this.walkFrameCanvas.width !== sw ||
+      this.walkFrameCanvas.height !== sh
     ) {
       this.walkFrameCanvas = document.createElement("canvas");
-      this.walkFrameCanvas.width = frame.width;
-      this.walkFrameCanvas.height = frame.height;
+      this.walkFrameCanvas.width = sw;
+      this.walkFrameCanvas.height = sh;
     }
     const c = this.walkFrameCanvas.getContext("2d");
-    c.clearRect(0, 0, frame.width, frame.height);
-    c.drawImage(frame, 0, 0);
+    c.clearRect(0, 0, sw, sh);
+    c.drawImage(src, 0, 0);
+
+    // Calibrate once from first good frame's content bounds
+    if (!this.walkCalib) {
+      const img = this.chroma.workCtx.getImageData(0, 0, sw, sh);
+      const b = this.chroma.contentBounds(img);
+      if (b && b.h > 8 && b.w > 4) {
+        this.walkCalib = {
+          bx: b.x,
+          by: b.y,
+          bw: b.w,
+          bh: b.h,
+          fw: sw,
+          fh: sh,
+        };
+      }
+    }
     return this.walkFrameCanvas;
+  }
+
+  /**
+   * On-screen rect for the full walk frame (facing right).
+   * Scale from first-frame content height → player.height; feet on player.y.
+   */
+  getWalkDrawRect() {
+    const cal = this.walkCalib;
+    if (!cal || !cal.bh) return null;
+    const scale = this.height / cal.bh;
+    const dw = cal.fw * scale;
+    const dh = cal.fh * scale;
+    // Content foot center in frame space → player feet
+    const footX = (cal.bx + cal.bw * 0.5) * scale;
+    const footY = (cal.by + cal.bh) * scale;
+    return {
+      dx: this.x - footX,
+      dy: this.y - footY,
+      dw,
+      dh,
+      scale,
+    };
   }
 }

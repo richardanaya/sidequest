@@ -1,0 +1,32 @@
+{
+  "notice": {
+    "name": "royal notice",
+    "desc": "\"His Majesty dines at the Crown & Cup tonight. Serve ROYAL ALE and a GOLDEN LOAF upon the high table.\"",
+    "icon": "items/notice.png"
+  },
+  "cellar_key": {
+    "name": "iron cellar key",
+    "desc": "A heavy iron key. Fits the cellar door under the stairs.",
+    "icon": "items/cellar_key.png"
+  },
+  "tankard": {
+    "name": "empty tankard",
+    "desc": "A clean pewter-bound mug. Ready for royal ale.",
+    "icon": "items/tankard.png"
+  },
+  "royal_ale": {
+    "name": "tankard of royal ale",
+    "desc": "Frothy gold from the crowned cask. Fit for a king.",
+    "icon": "items/royal_ale.png"
+  },
+  "flour": {
+    "name": "sack of flour",
+    "desc": "Fine milled flour. The oven will know what to do.",
+    "icon": "items/flour.png"
+  },
+  "loaf": {
+    "name": "golden loaf",
+    "desc": "Warm, crusty, and proudly risen. Straight from the hearth.",
+    "icon": "items/loaf.png"
+  }
+}
